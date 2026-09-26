@@ -1,0 +1,6 @@
+@DevicePulse.API_HostAddress = http://localhost:5239
+
+GET {{DevicePulse.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

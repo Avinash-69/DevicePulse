@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/DevicePulse.API/DevicePulse.API.csproj" />
+    <Project Path="src/DevicePulse.Application/DevicePulse.Application.csproj" />
+    <Project Path="src/DevicePulse.Domain/DevicePulse.Domain.csproj" />
+    <Project Path="src/DevicePulse.Infrastructure/DevicePulse.Infrastructure.csproj" />
+  </Folder>
+</Solution>
