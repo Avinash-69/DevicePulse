@@ -1,0 +1,23 @@
+# Normalise line endings so the same file does not look modified on different platforms.
+# Text files are stored with LF in the repository and checked out native.
+* text=auto
+
+# Always LF: these are read by tooling that can be upset by CRLF.
+*.sh        text eol=lf
+*.yml       text eol=lf
+*.yaml      text eol=lf
+Dockerfile  text eol=lf
+*.json      text eol=lf
+
+# Always CRLF: PowerShell and solution files are Windows-facing.
+*.ps1       text eol=crlf
+*.slnx      text eol=crlf
+*.sln       text eol=crlf
+
+# Binary — never diffed or line-ending converted.
+*.png       binary
+*.jpg       binary
+*.ico       binary
+*.woff      binary
+*.woff2     binary
+*.pdf       binary
