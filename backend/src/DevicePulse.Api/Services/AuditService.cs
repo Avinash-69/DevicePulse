@@ -42,11 +42,13 @@ public sealed class AuditService : IAuditService
         _currentUser = currentUser;
     }
 
-    /// <param name="actingUserId">
-    /// Explicit actor, for the one case where the actor is not yet on the request principal:
-    /// a login is audited before the token exists, so <see cref="ICurrentUser"/> is still
-    /// anonymous and would record the entry against nobody.
-    /// </param>
+    /// <remarks>
+    /// <c>actingUserId</c> and <c>actingUserEmail</c> exist for the one case where the actor is
+    /// not yet on the request principal: a login is audited before the token exists, so
+    /// <see cref="ICurrentUser"/> is still anonymous and would record the entry against nobody.
+    /// Documented as a remark rather than a single param tag, because documenting one parameter
+    /// and not the rest is a compiler warning.
+    /// </remarks>
     public void Record(
         string action,
         string entityType,
