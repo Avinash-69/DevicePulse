@@ -22,7 +22,7 @@ import { PageHeaderComponent } from '../../shared/components/ui.components';
 
           <form [formGroup]="form" (ngSubmit)="submit()">
             <div class="panel-body stack">
-              <p class="muted small">
+              <p class="text-2 small">
                 Changing your password signs you out of every session, including this one, so you
                 will need to sign in again.
               </p>
@@ -78,7 +78,7 @@ import { PageHeaderComponent } from '../../shared/components/ui.components';
           <div class="panel-body stack">
             <div>
               <span class="fact-label">Signed in as</span>
-              <p>{{ user()?.name }} <span class="muted">({{ user()?.email }})</span></p>
+              <p>{{ user()?.name }} <span class="text-2">({{ user()?.email }})</span></p>
             </div>
 
             <div>

@@ -55,7 +55,7 @@ import {
             <div class="panel-head">
               <h2>Build a run</h2>
               <span class="spacer"></span>
-              <span class="muted small">every value below is a command-line override</span>
+              <span class="text-2 small">every value below is a command-line override</span>
             </div>
 
             <div class="panel-body stack">
@@ -164,7 +164,7 @@ import {
             <div class="panel-body stack">
               <pre class="command">{{ command() }}</pre>
 
-              <p class="muted small">
+              <p class="text-2 small">
                 Run from <code>backend/src/DevicePulse.Simulator</code>. Credentials come from
                 <code>dotnet user-secrets</code> — they are never written into a command or a
                 config file that could be committed.
@@ -173,7 +173,7 @@ import {
               <details>
                 <summary>First-time setup</summary>
                 <pre class="command small">{{ setupCommand }}</pre>
-                <p class="muted small">
+                <p class="text-2 small">
                   The account needs the <code>telemetry.ingest</code> permission. In development
                   the seeded Super Admin has it; a real deployment would use a dedicated service
                   account with that one permission and nothing else.
@@ -214,7 +214,7 @@ import {
                 </div>
               </dl>
 
-              <p class="muted small">
+              <p class="text-2 small">
                 The simulator authenticates as a user and names the device in each reading. A real
                 device authenticates with its own key instead and can only ever report as itself.
               </p>
@@ -227,7 +227,7 @@ import {
               <div class="panel-head">
                 <h2>Send one reading</h2>
                 <span class="spacer"></span>
-                <span class="muted small">tests a rule without starting the simulator</span>
+                <span class="text-2 small">tests a rule without starting the simulator</span>
               </div>
 
               <form [formGroup]="manualForm" (ngSubmit)="sendOne()">
@@ -311,11 +311,11 @@ import {
           <section class="panel">
             <div class="panel-head"><h2>Why there is no Start button</h2></div>
             <div class="panel-body">
-              <p class="muted small">
+              <p class="text-2 small">
                 The simulator is a separate console application, and this API has no endpoint that
                 launches or stops a process. Buttons here would be decoration.
               </p>
-              <p class="muted small">
+              <p class="text-2 small">
                 Driving it remotely needs a backend process supervisor (or a containerised worker
                 the API can scale), which is tracked as future work rather than faked here.
               </p>

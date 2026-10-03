@@ -14,7 +14,7 @@ import { NotificationService } from '../core/services/notification.service';
           <div class="body">
             <p class="message">{{ notice.message }}</p>
             @if (notice.detail) {
-              <p class="detail mono subtle">{{ notice.detail }}</p>
+              <p class="detail mono text-3">{{ notice.detail }}</p>
             }
           </div>
 

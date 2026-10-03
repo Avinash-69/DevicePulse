@@ -81,7 +81,7 @@ type Kind = 'deviceType' | 'location';
                   @for (type of deviceTypes(); track type.deviceTypeId) {
                     <tr [class.inactive]="!type.isActive">
                       <td>{{ type.name }}</td>
-                      <td class="muted small">{{ type.description ?? '—' }}</td>
+                      <td class="text-2 small">{{ type.description ?? '—' }}</td>
                       <td class="right mono">{{ type.deviceCount }}</td>
                       <td>
                         <span class="badge" [class]="type.isActive ? 'badge-ok' : 'badge-neutral'">
@@ -138,7 +138,7 @@ type Kind = 'deviceType' | 'location';
                   @for (location of locations(); track location.locationId) {
                     <tr [class.inactive]="!location.isActive">
                       <td>{{ location.name }}</td>
-                      <td class="muted small">{{ location.description ?? '—' }}</td>
+                      <td class="text-2 small">{{ location.description ?? '—' }}</td>
                       <td class="right mono">{{ location.deviceCount }}</td>
                       <td>
                         <span class="badge" [class]="location.isActive ? 'badge-ok' : 'badge-neutral'">
@@ -165,7 +165,7 @@ type Kind = 'deviceType' | 'location';
         </section>
       </div>
 
-      <p class="footnote muted small">
+      <p class="footnote text-2 small">
         Neither can be deleted. Both are referenced by devices, so removing one would either
         orphan those devices or take their history with it. Deactivating hides a type or location
         from new registrations while leaving existing devices untouched.

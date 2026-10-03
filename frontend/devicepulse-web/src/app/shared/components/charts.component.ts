@@ -36,7 +36,7 @@ export interface BarDatum {
   imports: [],
   template: `
     @if (points().length < 2) {
-      <div class="no-data muted small">
+      <div class="no-data text-2 small">
         {{ points().length === 0 ? 'No telemetry in this window yet.' : 'Not enough readings to draw a trend yet.' }}
       </div>
     } @else {
@@ -78,7 +78,7 @@ export interface BarDatum {
           </text>
         </svg>
 
-        <figcaption class="legend muted small">
+        <figcaption class="legend text-2 small">
           <span class="key"><i class="swatch line-swatch"></i>Average</span>
           <span class="key"><i class="swatch band-swatch"></i>Min&ndash;max range</span>
           <span class="spacer"></span>
@@ -127,7 +127,7 @@ export interface BarDatum {
       }
 
       .axis-label {
-        font-size: 10px;
+        font-size: var(--fs-micro);
         fill: var(--text-3);
       }
 
@@ -287,7 +287,7 @@ function formatBucket(iso: string | undefined): string {
   imports: [],
   template: `
     @if (data().length === 0) {
-      <p class="muted small">No data yet.</p>
+      <p class="text-2 small">No data yet.</p>
     } @else {
       <ul class="bars">
         @for (row of rows(); track row.label) {
@@ -314,7 +314,7 @@ function formatBucket(iso: string | undefined): string {
       </ul>
 
       @if (secondaryLabel()) {
-        <p class="legend muted small">
+        <p class="legend text-2 small">
           <i class="swatch"></i>{{ secondaryLabel() }}
         </p>
       }
@@ -339,7 +339,7 @@ function formatBucket(iso: string | undefined): string {
       }
 
       .label {
-        font-size: 0.8rem;
+        font-size: var(--fs-sm);
         color: var(--text-2);
         overflow: hidden;
         text-overflow: ellipsis;
@@ -367,7 +367,7 @@ function formatBucket(iso: string | undefined): string {
       }
 
       .value {
-        font-size: 0.8rem;
+        font-size: var(--fs-sm);
         text-align: right;
         color: var(--text);
         font-variant-numeric: tabular-nums;
@@ -429,7 +429,7 @@ export interface DonutSlice {
   imports: [],
   template: `
     @if (total() === 0) {
-      <p class="muted small">{{ emptyMessage() }}</p>
+      <p class="text-2 small">{{ emptyMessage() }}</p>
     } @else {
       <div class="donut-wrap">
         <svg viewBox="0 0 120 120" role="img" [attr.aria-label]="ariaLabel()">
@@ -484,16 +484,16 @@ export interface DonutSlice {
       }
 
       .total {
-        font-size: 22px;
+        font-size: var(--fs-metric);
         font-weight: 600;
         fill: var(--text);
       }
 
       .total-label {
-        font-size: 9px;
+        font-size: var(--fs-micro);
         fill: var(--text-3);
         text-transform: uppercase;
-        letter-spacing: 0.05em;
+        letter-spacing: var(--tr-wide);
       }
 
       .legend {
@@ -510,13 +510,13 @@ export interface DonutSlice {
         grid-template-columns: 12px 1fr auto;
         gap: var(--sp-2);
         align-items: center;
-        font-size: 0.8rem;
+        font-size: var(--fs-sm);
       }
 
       .swatch {
         width: 10px;
         height: 10px;
-        border-radius: 3px;
+        border-radius: var(--r-xs);
       }
 
       .label { color: var(--text-2); }
@@ -572,7 +572,7 @@ export class DonutChartComponent {
   imports: [],
   template: `
     @if (level() === null) {
-      <span class="subtle small">&mdash;</span>
+      <span class="text-3 small">&mdash;</span>
     } @else {
       <span class="battery" [title]="level() + '%'">
         <span class="shell">
@@ -597,7 +597,7 @@ export class DonutChartComponent {
         height: 12px;
         background: var(--panel-3);
         border: 1px solid var(--line-strong);
-        border-radius: 3px;
+        border-radius: var(--r-xs);
         overflow: hidden;
       }
 
@@ -607,7 +607,7 @@ export class DonutChartComponent {
       }
 
       .pct {
-        font-size: 0.75rem;
+        font-size: var(--fs-meta);
         color: var(--text-2);
         font-variant-numeric: tabular-nums;
       }

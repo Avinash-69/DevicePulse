@@ -53,9 +53,50 @@ size, three files per component is more navigation than structure.
 
 **Styling is custom properties, not a component library.** `src/styles.scss` defines every token
 once and redefines them under `:root[data-theme='dark']`. A component referencing `var(--accent)`
-or `var(--surface)` follows the theme with no extra work. There is no component framework
-because this application needs tables, forms, badges, modals and three chart shapes, and a
-framework plus its theming layer would cost more than it saves.
+or `var(--panel)` follows the theme with no extra work. There is no component framework because
+this application needs tables, forms, badges, modals and four chart shapes, and a framework plus
+its theming layer would cost more than it saves.
+
+**The design system is a set of scales, and using them is not optional.** An earlier version of
+this stylesheet had a thorough colour system and no spacing, type or breakpoint scale, so every
+component invented its own. `.two-up` ended up defined in five files with four different column
+ratios, the layout reflowed at seven unrelated widths, and spacing used eleven arbitrary rem
+values. The scales exist so that cannot recur:
+
+| Scale | Tokens | Rule |
+|---|---|---|
+| Spacing | `--sp-0` … `--sp-9`, a 4px rhythm | No bare `rem` in a component style |
+| Type | `--fs-micro` … `--fs-display`, plus `--fw-*`, `--lh-*`, `--tr-*` | No bare `px`/`rem` font sizes |
+| Radius | `--r-xs` … `--r-lg`, max 8px, 6px default | Nothing is more rounded than `--r-lg` |
+| Colour | `--panel*`, `--line*`, `--text`/`--text-2`/`--text-3`, status, severity | Colour means status, never decoration |
+| Breakpoints | 1200 / 900 / 600 | Only these three widths |
+
+Component styles compile independently and cannot read the SCSS breakpoint variables, so they
+repeat the literals — but only those three.
+
+**Hierarchy comes from type and space, not from containers.** Use `.section` with a
+`.section-head` to label a region; reach for `.panel` only where enclosure does real work, such
+as around a table or a form. Shadows are for surfaces that genuinely float — modals, popovers,
+toasts — and nothing else. There is one two-column primitive, `.split`, whose ratio is the
+`--split-ratio` custom property.
+
+**Status is coloured text with a marker, not a filled pill.** `dp-connectivity`,
+`dp-alert-status` and `dp-severity` render a dot or tick plus a word. Forty lozenges in a
+forty-row table become decoration competing with the data they describe. `.badge` survives for
+the few places an enclosed tag genuinely helps — role chips, alert counts — and `.count` for a
+number beside a label. Figures use `.num` or `--fs-metric`, both of which set
+`font-variant-numeric: tabular-nums` so columns of numbers align.
+
+**Readouts, not metric cards.** `dp-stat` is a small uppercase label over a large tabular figure
+with no border or background. At most one per screen sets `[lead]="true"`, for the single figure
+that answers the screen's central question.
+
+**Tables reorganise on small screens rather than shrinking.** Mark secondary columns
+`col-optional` on both the `<th>` and its `<td>` — they leave the layout below 600px, and the
+identifying first column stays pinned while the rest scrolls. Marking only the header shifts
+every row one column left, so the two must always be changed together. When a `<th>` already has
+a `[class]` binding for sort state, fold the class into that expression: a `[class]` binding
+replaces the static `class` attribute rather than merging with it.
 
 **Charts are inline SVG.** `shared/components/charts.component.ts` has a line chart with a
 min/max band, horizontal bars, a donut and a battery meter. They scale with `viewBox`, so they

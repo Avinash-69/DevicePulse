@@ -302,8 +302,8 @@ table.data td.num,
   color: var(--text-3);
 }
 
-.text-2, .muted { color: var(--text-2); }
-.text-3, .subtle { color: var(--text-3); }
+.text-2 { color: var(--text-2); }
+.text-3 { color: var(--text-3); }
 .small { font-size: var(--fs-meta); }
 .nowrap { white-space: nowrap; }
 .right { text-align: right; }
@@ -833,6 +833,37 @@ table.data td.actions {
 }
 
 table.data.compact td { padding: var(--sp-1) var(--sp-3); }
+
+/*
+ * Narrow screens.
+ *
+ * A data table cannot simply shrink: at 380px, eight columns either overflow or become
+ * unreadable. So the table decides what matters instead of scaling uniformly.
+ *
+ *   - Columns marked `.col-optional` leave the layout below 600px. On a phone an operator needs
+ *     "which device, and is it healthy" -- not signal strength in dBm, which is what they open
+ *     the device page for.
+ *   - The identifying column stays pinned to the left while the rest scrolls, so a row never
+ *     loses the name of the thing it is about.
+ */
+@media (max-width: $bp-sm) {
+  table.data th.col-optional,
+  table.data td.col-optional { display: none; }
+
+  table.data th:first-child,
+  table.data td:first-child {
+    position: sticky;
+    left: 0;
+    z-index: 2;
+    background: var(--panel);
+    box-shadow: 1px 0 0 var(--line);
+  }
+
+  table.data th:first-child { z-index: 3; background: var(--panel-2); }
+  table.data tbody tr:hover td:first-child { background: var(--panel-2); }
+  table.data tr.row-danger td:first-child { background: var(--danger-wash); }
+  table.data tr.row-warn td:first-child { background: var(--warn-wash); }
+}
 
 /* ---------------------------------------------------------------- status */
 

@@ -67,11 +67,11 @@ import {
                     <span class="badge badge-neutral">disabled</span>
                   }
                   <span class="spacer"></span>
-                  <span class="muted small">{{ role.userCount }} user(s)</span>
+                  <span class="text-2 small">{{ role.userCount }} user(s)</span>
                 </div>
 
                 @if (role.description) {
-                  <p class="muted small desc">{{ role.description }}</p>
+                  <p class="text-2 small desc">{{ role.description }}</p>
                 }
 
                 <div class="perm-count">
@@ -83,7 +83,7 @@ import {
                     <span class="badge badge-neutral mono">{{ key }}</span>
                   }
                   @if (role.permissions.length > 6) {
-                    <span class="subtle small">+{{ role.permissions.length - 6 }} more</span>
+                    <span class="text-3 small">+{{ role.permissions.length - 6 }} more</span>
                   }
                 </div>
               </div>
@@ -180,7 +180,7 @@ import {
       @if (permissionsFor(); as role) {
         <div class="panel-body stack">
           <div class="row row-wrap">
-            <span class="muted small">
+            <span class="text-2 small">
               {{ selected().length }} of {{ catalog().length }} selected
             </span>
             <span class="spacer"></span>
@@ -218,9 +218,9 @@ import {
                     />
                     <span class="perm-body">
                       <span class="perm-name">{{ permission.name }}</span>
-                      <span class="perm-key mono subtle">{{ permission.key }}</span>
+                      <span class="perm-key mono text-3">{{ permission.key }}</span>
                       @if (permission.description) {
-                        <span class="perm-desc muted small">{{ permission.description }}</span>
+                        <span class="perm-desc text-2 small">{{ permission.description }}</span>
                       }
                     </span>
                   </label>

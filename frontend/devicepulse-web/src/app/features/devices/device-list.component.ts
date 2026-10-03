@@ -148,11 +148,11 @@ import { RelativeTimePipe } from '../../shared/utils/relative-time.pipe';
                     <th [class]="sortClass('deviceName')" (click)="sortBy('deviceName')">
                       Device
                     </th>
-                    <th [class]="sortClass('deviceCode')" (click)="sortBy('deviceCode')">
+                    <th [class]="sortClass('deviceCode') + ' col-optional'" (click)="sortBy('deviceCode')">
                       Code
                     </th>
-                    <th>Type</th>
-                    <th>Location</th>
+                    <th class="col-optional">Type</th>
+                    <th class="col-optional">Location</th>
                     <th [class]="sortClass('connectivityStatus')" (click)="sortBy('connectivityStatus')">
                       Connectivity
                     </th>
@@ -167,15 +167,15 @@ import { RelativeTimePipe } from '../../shared/utils/relative-time.pipe';
                 <tbody>
                   @for (device of page.items; track device.deviceId) {
                     <tr>
-                      <td>
+                      <td class="primary">
                         <a [routerLink]="['/devices', device.deviceId]">{{ device.deviceName }}</a>
                       </td>
-                      <td class="mono subtle">{{ device.deviceCode }}</td>
-                      <td class="muted">{{ device.deviceTypeName }}</td>
-                      <td class="muted">{{ device.locationName }}</td>
+                      <td class="mono text-3 col-optional">{{ device.deviceCode }}</td>
+                      <td class="text-2 col-optional">{{ device.deviceTypeName }}</td>
+                      <td class="text-2 col-optional">{{ device.locationName }}</td>
                       <td><dp-connectivity [status]="device.connectivityStatus" /></td>
                       <td><dp-lifecycle [status]="device.lifecycleStatus" /></td>
-                      <td class="muted small nowrap">
+                      <td class="text-2 small nowrap">
                         {{ device.lastSeenAt ? (device.lastSeenAt | relativeTime) : 'never' }}
                       </td>
                       <td class="right">
@@ -188,14 +188,14 @@ import { RelativeTimePipe } from '../../shared/utils/relative-time.pipe';
                             {{ device.openAlertCount }}
                           </a>
                         } @else {
-                          <span class="subtle">—</span>
+                          <span class="text-3">—</span>
                         }
                       </td>
                       <td>
                         @if (device.hasApiKey) {
                           <span class="badge badge-accent" title="An ingestion key has been issued">issued</span>
                         } @else {
-                          <span class="subtle small">none</span>
+                          <span class="text-3 small">none</span>
                         }
                       </td>
                     </tr>

@@ -170,7 +170,7 @@ import { AbsoluteTimePipe, RelativeTimePipe } from '../../shared/utils/relative-
               <div class="panel-head">
                 <h2>Recent readings</h2>
                 <span class="spacer"></span>
-                <span class="muted small">newest first</span>
+                <span class="text-2 small">newest first</span>
               </div>
 
               @if (readings().length === 0) {
@@ -226,7 +226,7 @@ import { AbsoluteTimePipe, RelativeTimePipe } from '../../shared/utils/relative-
                         <dp-severity [severity]="alert.severity" />
                         <dp-alert-status [status]="alert.status" />
                         <span class="spacer"></span>
-                        <span class="subtle small">{{ alert.createdAt | relativeTime }}</span>
+                        <span class="text-3 small">{{ alert.createdAt | relativeTime }}</span>
                       </div>
                       <p class="alert-message">{{ alert.message }}</p>
                     </li>

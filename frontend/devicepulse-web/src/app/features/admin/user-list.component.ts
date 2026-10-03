@@ -104,7 +104,7 @@ import { AbsoluteTimePipe, RelativeTimePipe } from '../../shared/utils/relative-
                             <span class="badge badge-accent">you</span>
                           }
                         </td>
-                        <td class="muted">{{ user.email }}</td>
+                        <td class="text-2">{{ user.email }}</td>
                         <td>
                           <div class="role-chips">
                             @for (role of user.roles; track role.roleId) {
@@ -126,7 +126,7 @@ import { AbsoluteTimePipe, RelativeTimePipe } from '../../shared/utils/relative-
                             <span class="badge badge-ok">active</span>
                           }
                         </td>
-                        <td class="muted small nowrap">
+                        <td class="text-2 small nowrap">
                           {{ user.lastLoginAt ? (user.lastLoginAt | relativeTime) : 'never' }}
                         </td>
                         <td class="right nowrap">
@@ -226,7 +226,7 @@ import { AbsoluteTimePipe, RelativeTimePipe } from '../../shared/utils/relative-
                   <span>
                     {{ role.name }}
                     @if (!role.isActive) {
-                      <span class="subtle small">(disabled)</span>
+                      <span class="text-3 small">(disabled)</span>
                     }
                   </span>
                 </label>

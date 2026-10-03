@@ -97,24 +97,24 @@ import { AbsoluteTimePipe, RelativeTimePipe } from '../../shared/utils/relative-
                   <article class="entry">
                     <div class="entry-head">
                       <span class="action">{{ entry.action }}</span>
-                      <span class="entity muted small">
+                      <span class="entity text-2 small">
                         {{ entry.entityType }}@if (entry.entityId) {
                           <span class="mono"> · {{ entry.entityId }}</span>
                         }
                       </span>
                       <span class="spacer"></span>
-                      <span class="muted small nowrap" [title]="entry.timestamp | absoluteTime: true">
+                      <span class="text-2 small nowrap" [title]="entry.timestamp | absoluteTime: true">
                         {{ entry.timestamp | relativeTime }}
                       </span>
                     </div>
 
-                    <div class="entry-who muted small">
+                    <div class="entry-who text-2 small">
                       <span>{{ entry.userEmail ?? 'system' }}</span>
                       @if (entry.ipAddress) {
-                        <span class="mono subtle">{{ entry.ipAddress }}</span>
+                        <span class="mono text-3">{{ entry.ipAddress }}</span>
                       }
                       @if (entry.correlationId) {
-                        <span class="mono subtle" title="Correlation ID for this request">
+                        <span class="mono text-3" title="Correlation ID for this request">
                           {{ entry.correlationId }}
                         </span>
                       }

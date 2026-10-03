@@ -141,11 +141,11 @@ import { RelativeTimePipe } from '../../shared/utils/relative-time.pipe';
                     <thead>
                       <tr>
                         <th>Device</th>
-                        <th>Location</th>
+                        <th class="col-optional">Location</th>
                         <th>Connectivity</th>
                         <th>Last seen</th>
-                        <th class="right">Temp</th>
-                        <th>Battery</th>
+                        <th class="col-optional right">Temp</th>
+                        <th class="col-optional">Battery</th>
                         <th class="right">Alerts</th>
                         <th>Worst</th>
                       </tr>
@@ -157,15 +157,15 @@ import { RelativeTimePipe } from '../../shared/utils/relative-time.pipe';
                             <a [routerLink]="['/devices', row.deviceId]">{{ row.deviceName }}</a>
                             <div class="mono text-3 small">{{ row.deviceCode }}</div>
                           </td>
-                          <td class="text-2">{{ row.locationName }}</td>
+                          <td class="text-2 col-optional">{{ row.locationName }}</td>
                           <td><dp-connectivity [status]="row.connectivityStatus" /></td>
                           <td class="text-2 small nowrap">
                             {{ row.lastSeenAt ? (row.lastSeenAt | relativeTime) : 'never' }}
                           </td>
-                          <td class="num right nowrap">
+                          <td class="num right nowrap col-optional">
                             {{ row.lastTemperature !== null ? row.lastTemperature + '°C' : '—' }}
                           </td>
-                          <td><dp-battery [level]="row.lastBattery" /></td>
+                          <td class="col-optional"><dp-battery [level]="row.lastBattery" /></td>
                           <td class="num right">{{ row.openAlertCount || '—' }}</td>
                           <td>
                             @if (row.highestOpenSeverity) {

@@ -30,7 +30,7 @@ import { ToastsComponent } from '../../layout/toasts.component';
           </span>
           <div>
             <h1>DevicePulse</h1>
-            <p class="muted small">IoT device monitoring and management</p>
+            <p class="text-2 small">IoT device monitoring and management</p>
           </div>
         </div>
 
@@ -80,7 +80,7 @@ import { ToastsComponent } from '../../layout/toasts.component';
           </div>
         </form>
 
-        <p class="footnote subtle small">
+        <p class="footnote text-3 small">
           Access is granted by an administrator. Permissions are enforced by the API on every
           request, not by this page.
         </p>

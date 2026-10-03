@@ -60,9 +60,9 @@ import { AbsoluteTimePipe, RelativeTimePipe } from '../../shared/utils/relative-
                     <div class="info">
                       <span class="key mono">{{ setting.key }}</span>
                       @if (setting.description) {
-                        <p class="muted small">{{ setting.description }}</p>
+                        <p class="text-2 small">{{ setting.description }}</p>
                       }
-                      <p class="subtle small">
+                      <p class="text-3 small">
                         Version {{ setting.version }}
                         @if (setting.updatedBy) {
                           · changed by {{ setting.updatedBy }}
@@ -87,7 +87,7 @@ import { AbsoluteTimePipe, RelativeTimePipe } from '../../shared/utils/relative-
                             />
                             <span class="switch-track"></span>
                           </label>
-                          <span class="muted small">
+                          <span class="text-2 small">
                             {{ draft()[setting.key] === 'true' ? 'Enabled' : 'Disabled' }}
                           </span>
                         }
@@ -130,12 +130,12 @@ import { AbsoluteTimePipe, RelativeTimePipe } from '../../shared/utils/relative-
                               [attr.aria-label]="setting.key"
                             />
                             @if (setting.unit) {
-                              <span class="unit muted small">{{ setting.unit }}</span>
+                              <span class="unit text-2 small">{{ setting.unit }}</span>
                             }
                           </div>
 
                           @if (setting.minValue !== null || setting.maxValue !== null) {
-                            <span class="subtle small nowrap">
+                            <span class="text-3 small nowrap">
                               {{ setting.minValue }}–{{ setting.maxValue }}
                             </span>
                           }
@@ -194,12 +194,12 @@ import { AbsoluteTimePipe, RelativeTimePipe } from '../../shared/utils/relative-
               <span class="arrow" aria-hidden="true">→</span>
               <span class="new mono">{{ draft()[setting.key] }}</span>
               @if (setting.unit) {
-                <span class="muted small">{{ setting.unit }}</span>
+                <span class="text-2 small">{{ setting.unit }}</span>
               }
             </div>
           </div>
 
-          <p class="muted small">
+          <p class="text-2 small">
             This takes effect immediately across the application and will appear in the audit log.
           </p>
 
@@ -267,11 +267,11 @@ import { AbsoluteTimePipe, RelativeTimePipe } from '../../shared/utils/relative-
                 @for (entry of history(); track entry.settingHistoryId) {
                   <tr>
                     <td class="mono">{{ entry.version }}</td>
-                    <td class="mono subtle">{{ entry.oldValue ?? '—' }}</td>
+                    <td class="mono text-3">{{ entry.oldValue ?? '—' }}</td>
                     <td class="mono">{{ entry.newValue }}</td>
-                    <td class="muted">{{ entry.changedBy ?? 'system' }}</td>
-                    <td class="muted small nowrap">{{ entry.changedAt | absoluteTime }}</td>
-                    <td class="muted small">{{ entry.changeReason ?? '—' }}</td>
+                    <td class="text-2">{{ entry.changedBy ?? 'system' }}</td>
+                    <td class="text-2 small nowrap">{{ entry.changedAt | absoluteTime }}</td>
+                    <td class="text-2 small">{{ entry.changeReason ?? '—' }}</td>
                   </tr>
                 }
               </tbody>

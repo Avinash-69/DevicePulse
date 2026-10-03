@@ -93,7 +93,7 @@ import { AbsoluteTimePipe, DurationPipe } from '../../shared/utils/relative-time
                 <p class="condition mono">{{ rule.conditionSummary }}</p>
 
                 @if (rule.description) {
-                  <p class="muted small">{{ rule.description }}</p>
+                  <p class="text-2 small">{{ rule.description }}</p>
                 }
 
                 <dl class="meta">

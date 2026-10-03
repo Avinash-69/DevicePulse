@@ -115,16 +115,16 @@ import { AbsoluteTimePipe, RelativeTimePipe } from '../../shared/utils/relative-
                       <td><dp-alert-status [status]="alert.status" /></td>
                       <td>
                         <a [routerLink]="['/devices', alert.deviceId]">{{ alert.deviceName }}</a>
-                        <div class="mono subtle small">{{ alert.deviceCode }}</div>
+                        <div class="mono text-3 small">{{ alert.deviceCode }}</div>
                       </td>
                       <td class="message">
                         {{ alert.message }}
                         @if (alert.resolutionNote) {
-                          <div class="subtle small">Resolution: {{ alert.resolutionNote }}</div>
+                          <div class="text-3 small">Resolution: {{ alert.resolutionNote }}</div>
                         }
                       </td>
-                      <td class="muted small">{{ alert.alertRuleName ?? 'rule deleted' }}</td>
-                      <td class="muted small nowrap" [title]="alert.createdAt | absoluteTime: true">
+                      <td class="text-2 small">{{ alert.alertRuleName ?? 'rule deleted' }}</td>
+                      <td class="text-2 small nowrap" [title]="alert.createdAt | absoluteTime: true">
                         {{ alert.createdAt | relativeTime }}
                       </td>
                       <td class="right nowrap">
@@ -152,7 +152,7 @@ import { AbsoluteTimePipe, RelativeTimePipe } from '../../shared/utils/relative-
                           }
 
                           @if (alert.status === 'Resolved') {
-                            <span class="subtle small">
+                            <span class="text-3 small">
                               by {{ alert.resolvedBy ?? 'the system' }}
                             </span>
                           }
