@@ -34,8 +34,8 @@ import { ToastsComponent } from '../../layout/toasts.component';
           </div>
         </div>
 
-        <form class="card" [formGroup]="form" (ngSubmit)="submit()">
-          <div class="card-body stack">
+        <form class="panel" [formGroup]="form" (ngSubmit)="submit()">
+          <div class="panel-body stack">
             <h2>Sign in</h2>
 
             @if (errorMessage()) {

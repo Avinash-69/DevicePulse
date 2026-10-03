@@ -40,8 +40,8 @@ import { AbsoluteTimePipe, RelativeTimePipe } from '../../shared/utils/relative-
         title="Audit log"
       />
 
-      <div class="card">
-        <div class="filters">
+      <div class="panel">
+        <div class="toolbar">
           <div class="field search">
             <input
               type="search"
@@ -157,18 +157,10 @@ import { AbsoluteTimePipe, RelativeTimePipe } from '../../shared/utils/relative-
   changeDetection: ChangeDetectionStrategy.Eager,
   styles: [
     `
-      .filters {
-        display: flex;
-        gap: var(--sp-2);
-        align-items: center;
-        flex-wrap: wrap;
-        padding: var(--sp-3) var(--sp-4);
-        border-bottom: 1px solid var(--line);
-      }
 
-      .filters .field select,
-      .filters .field input[type='datetime-local'] { width: auto; }
-      .filters .search { flex: 1 1 220px; }
+      .toolbar .field select,
+      .toolbar .field input[type='datetime-local'] { width: auto; }
+      .toolbar .search { flex: 1 1 220px; }
 
       .entries { display: grid; }
 

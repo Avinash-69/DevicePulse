@@ -43,14 +43,14 @@ import { AbsoluteTimePipe, RelativeTimePipe } from '../../shared/utils/relative-
       @if (loading()) {
         <div class="skeleton" style="height: 320px; border-radius: 12px"></div>
       } @else if (settings().length === 0) {
-        <div class="card">
+        <div class="panel">
           <dp-empty title="No settings" message="The backend has not seeded its settings catalog yet." />
         </div>
       } @else {
         <div class="stack-lg">
           @for (group of grouped(); track group.category) {
-            <section class="card">
-              <div class="card-header">
+            <section class="panel">
+              <div class="panel-head">
                 <h2>{{ group.category }}</h2>
               </div>
 
@@ -183,7 +183,7 @@ import { AbsoluteTimePipe, RelativeTimePipe } from '../../shared/utils/relative-
     <!-- Confirm, with a reason. -->
     <dp-modal [open]="pending() !== null" title="Apply this change" (closed)="pending.set(null)">
       @if (pending(); as setting) {
-        <div class="card-body stack">
+        <div class="panel-body stack">
           <div class="change">
             <div>
               <span class="fact-label">Setting</span>
@@ -222,7 +222,7 @@ import { AbsoluteTimePipe, RelativeTimePipe } from '../../shared/utils/relative-
           }
         </div>
 
-        <div class="card-footer row">
+        <div class="panel-foot row">
           <span class="spacer"></span>
           <button type="button" class="btn" (click)="pending.set(null)">Cancel</button>
           <button
@@ -247,7 +247,7 @@ import { AbsoluteTimePipe, RelativeTimePipe } from '../../shared/utils/relative-
       width="640px"
       (closed)="historyFor.set(null)"
     >
-      <div class="card-body-flush">
+      <div class="panel-body-flush">
         @if (history().length === 0) {
           <dp-empty title="No changes yet" message="This setting is still at its seeded default." />
         } @else {

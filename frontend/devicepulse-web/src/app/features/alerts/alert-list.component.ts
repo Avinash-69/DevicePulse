@@ -44,9 +44,9 @@ import { AbsoluteTimePipe, RelativeTimePipe } from '../../shared/utils/relative-
         <a routerLink="/alert-rules" class="btn btn-sm">Alert rules</a>
       </dp-page-header>
 
-      <div class="card">
-        <div class="filters">
-          <div class="pill-group">
+      <div class="panel">
+        <div class="toolbar">
+          <div class="segmented">
             @for (option of statusOptions; track option.value) {
               <button
                 type="button"
@@ -179,7 +179,7 @@ import { AbsoluteTimePipe, RelativeTimePipe } from '../../shared/utils/relative-
     </div>
 
     <dp-modal [open]="resolving() !== null" title="Resolve alert" (closed)="resolving.set(null)">
-      <div class="card-body stack">
+      <div class="panel-body stack">
         <p class="small">{{ resolving()?.message }}</p>
 
         <div class="field">
@@ -195,7 +195,7 @@ import { AbsoluteTimePipe, RelativeTimePipe } from '../../shared/utils/relative-
         </div>
       </div>
 
-      <div class="card-footer row">
+      <div class="panel-foot row">
         <span class="spacer"></span>
         <button type="button" class="btn" (click)="resolving.set(null)">Cancel</button>
         <button type="button" class="btn btn-primary" (click)="resolve()" [disabled]="busyId() !== null">
@@ -207,16 +207,8 @@ import { AbsoluteTimePipe, RelativeTimePipe } from '../../shared/utils/relative-
   changeDetection: ChangeDetectionStrategy.Eager,
   styles: [
     `
-      .filters {
-        display: flex;
-        gap: var(--sp-2);
-        align-items: center;
-        flex-wrap: wrap;
-        padding: var(--sp-3) var(--sp-4);
-        border-bottom: 1px solid var(--line);
-      }
 
-      .filters .field select { width: auto; min-width: 150px; }
+      .toolbar .field select { width: auto; min-width: 150px; }
 
       .message { max-width: 420px; line-height: 1.4; }
 

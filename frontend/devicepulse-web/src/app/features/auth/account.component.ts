@@ -17,11 +17,11 @@ import { PageHeaderComponent } from '../../shared/components/ui.components';
       <dp-page-header title="Your account" />
 
       <div class="split split-even">
-        <section class="card">
-          <div class="card-header"><h2>Change password</h2></div>
+        <section class="panel">
+          <div class="panel-head"><h2>Change password</h2></div>
 
           <form [formGroup]="form" (ngSubmit)="submit()">
-            <div class="card-body stack">
+            <div class="panel-body stack">
               <p class="muted small">
                 Changing your password signs you out of every session, including this one, so you
                 will need to sign in again.
@@ -60,7 +60,7 @@ import { PageHeaderComponent } from '../../shared/components/ui.components';
               }
             </div>
 
-            <div class="card-footer row">
+            <div class="panel-foot row">
               <span class="spacer"></span>
               <button type="submit" class="btn btn-primary" [disabled]="saving()">
                 @if (saving()) {
@@ -72,10 +72,10 @@ import { PageHeaderComponent } from '../../shared/components/ui.components';
           </form>
         </section>
 
-        <section class="card">
-          <div class="card-header"><h2>Access</h2></div>
+        <section class="panel">
+          <div class="panel-head"><h2>Access</h2></div>
 
-          <div class="card-body stack">
+          <div class="panel-body stack">
             <div>
               <span class="fact-label">Signed in as</span>
               <p>{{ user()?.name }} <span class="muted">({{ user()?.email }})</span></p>

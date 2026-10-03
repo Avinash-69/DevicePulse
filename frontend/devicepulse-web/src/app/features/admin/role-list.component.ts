@@ -48,14 +48,14 @@ import {
       @if (loading()) {
         <div class="skeleton" style="height: 280px; border-radius: 12px"></div>
       } @else if (roles().length === 0) {
-        <div class="card">
+        <div class="panel">
           <dp-empty title="No roles" message="The backend seeds four system roles on first run." />
         </div>
       } @else {
         <div class="roles">
           @for (role of roles(); track role.roleId) {
-            <article class="card role">
-              <div class="card-body">
+            <article class="panel role">
+              <div class="panel-body">
                 <div class="row row-wrap">
                   <h3>{{ role.name }}</h3>
                   @if (role.isSystemRole) {
@@ -88,7 +88,7 @@ import {
                 </div>
               </div>
 
-              <div class="card-footer row">
+              <div class="panel-foot row">
                 <span class="spacer"></span>
 
                 <dp-if-permitted [permission]="perm.permissionManage">
@@ -114,7 +114,7 @@ import {
       (closed)="formOpen.set(false)"
     >
       <form [formGroup]="form" (ngSubmit)="save()">
-        <div class="card-body stack">
+        <div class="panel-body stack">
           @if (editing()?.isSystemRole) {
             <p class="notice small">
               This is a built-in role. Its name cannot be changed and it cannot be disabled,
@@ -157,7 +157,7 @@ import {
           }
         </div>
 
-        <div class="card-footer row">
+        <div class="panel-foot row">
           <span class="spacer"></span>
           <button type="button" class="btn" (click)="formOpen.set(false)">Cancel</button>
           <button type="submit" class="btn btn-primary" [disabled]="saving()">
@@ -178,7 +178,7 @@ import {
       (closed)="permissionsFor.set(null)"
     >
       @if (permissionsFor(); as role) {
-        <div class="card-body stack">
+        <div class="panel-body stack">
           <div class="row row-wrap">
             <span class="muted small">
               {{ selected().length }} of {{ catalog().length }} selected
@@ -239,7 +239,7 @@ import {
           </p>
         </div>
 
-        <div class="card-footer row">
+        <div class="panel-foot row">
           <span class="spacer"></span>
           <button type="button" class="btn" (click)="permissionsFor.set(null)">Cancel</button>
           <button type="button" class="btn btn-primary" (click)="savePermissions(role)" [disabled]="saving()">
@@ -262,7 +262,7 @@ import {
       }
 
       .role { display: flex; flex-direction: column; }
-      .role .card-body { flex: 1 1 auto; }
+      .role .panel-body { flex: 1 1 auto; }
       .role h3 { font-size: 0.95rem; }
 
       .desc { margin: var(--sp-2) 0 0; }

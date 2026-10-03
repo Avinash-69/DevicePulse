@@ -51,14 +51,14 @@ import {
       <div class="split">
         <div class="stack">
           <!-- Command builder -->
-          <section class="card">
-            <div class="card-header">
+          <section class="panel">
+            <div class="panel-head">
               <h2>Build a run</h2>
               <span class="spacer"></span>
               <span class="muted small">every value below is a command-line override</span>
             </div>
 
-            <div class="card-body stack">
+            <div class="panel-body stack">
               <div class="grid-two">
                 <div class="field">
                   <label for="deviceCount">Devices</label>
@@ -154,14 +154,14 @@ import {
           </section>
 
           <!-- Command -->
-          <section class="card">
-            <div class="card-header">
+          <section class="panel">
+            <div class="panel-head">
               <h2>Run it</h2>
               <span class="spacer"></span>
               <dp-copy [value]="command()" label="command" />
             </div>
 
-            <div class="card-body stack">
+            <div class="panel-body stack">
               <pre class="command">{{ command() }}</pre>
 
               <p class="muted small">
@@ -185,8 +185,8 @@ import {
 
         <div class="stack">
           <!-- Live state -->
-          <section class="card">
-            <div class="card-header">
+          <section class="panel">
+            <div class="panel-head">
               <h2>Current ingestion state</h2>
               <span class="spacer"></span>
               <button type="button" class="btn btn-sm" (click)="loadState()" [disabled]="loading()">
@@ -194,7 +194,7 @@ import {
               </button>
             </div>
 
-            <div class="card-body">
+            <div class="panel-body">
               <dl class="state">
                 <div>
                   <dt>Devices reporting</dt>
@@ -223,15 +223,15 @@ import {
 
           <!-- Single reading -->
           <dp-if-permitted [permission]="perm.telemetryIngest">
-            <section class="card">
-              <div class="card-header">
+            <section class="panel">
+              <div class="panel-head">
                 <h2>Send one reading</h2>
                 <span class="spacer"></span>
                 <span class="muted small">tests a rule without starting the simulator</span>
               </div>
 
               <form [formGroup]="manualForm" (ngSubmit)="sendOne()">
-                <div class="card-body stack">
+                <div class="panel-body stack">
                   <div class="field">
                     <label for="manualDevice">Device</label>
                     <select id="manualDevice" [formControl]="manualForm.controls.deviceId">
@@ -294,7 +294,7 @@ import {
                   }
                 </div>
 
-                <div class="card-footer row">
+                <div class="panel-foot row">
                   <span class="spacer"></span>
                   <button type="submit" class="btn btn-primary" [disabled]="sending()">
                     @if (sending()) {
@@ -308,9 +308,9 @@ import {
           </dp-if-permitted>
 
           <!-- Honest scope note -->
-          <section class="card">
-            <div class="card-header"><h2>Why there is no Start button</h2></div>
-            <div class="card-body">
+          <section class="panel">
+            <div class="panel-head"><h2>Why there is no Start button</h2></div>
+            <div class="panel-body">
               <p class="muted small">
                 The simulator is a separate console application, and this API has no endpoint that
                 launches or stops a process. Buttons here would be decoration.

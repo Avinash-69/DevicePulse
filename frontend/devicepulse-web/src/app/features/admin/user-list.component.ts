@@ -47,8 +47,8 @@ import { AbsoluteTimePipe, RelativeTimePipe } from '../../shared/utils/relative-
         </dp-if-permitted>
       </dp-page-header>
 
-      <div class="card">
-        <div class="filters">
+      <div class="panel">
+        <div class="toolbar">
           <div class="field search">
             <input
               type="search"
@@ -180,7 +180,7 @@ import { AbsoluteTimePipe, RelativeTimePipe } from '../../shared/utils/relative-
       (closed)="formOpen.set(false)"
     >
       <form [formGroup]="form" (ngSubmit)="save()">
-        <div class="card-body stack">
+        <div class="panel-body stack">
           <div class="field">
             <label for="name">Full name</label>
             <input id="name" type="text" formControlName="name" />
@@ -245,7 +245,7 @@ import { AbsoluteTimePipe, RelativeTimePipe } from '../../shared/utils/relative-
           }
         </div>
 
-        <div class="card-footer row">
+        <div class="panel-foot row">
           <span class="spacer"></span>
           <button type="button" class="btn" (click)="formOpen.set(false)">Cancel</button>
           <button type="submit" class="btn btn-primary" [disabled]="saving()">
@@ -260,7 +260,7 @@ import { AbsoluteTimePipe, RelativeTimePipe } from '../../shared/utils/relative-
 
     <!-- Reset password -->
     <dp-modal [open]="resetting() !== null" title="Reset password" (closed)="resetting.set(null)">
-      <div class="card-body stack">
+      <div class="panel-body stack">
         <p class="small">
           Sets a new password for <strong>{{ resetting()?.email }}</strong>, clears any lockout,
           and signs them out of every existing session.
@@ -279,7 +279,7 @@ import { AbsoluteTimePipe, RelativeTimePipe } from '../../shared/utils/relative-
         }
       </div>
 
-      <div class="card-footer row">
+      <div class="panel-foot row">
         <span class="spacer"></span>
         <button type="button" class="btn" (click)="resetting.set(null)">Cancel</button>
         <button type="button" class="btn btn-primary" (click)="resetPassword()" [disabled]="saving()">
@@ -291,17 +291,9 @@ import { AbsoluteTimePipe, RelativeTimePipe } from '../../shared/utils/relative-
   changeDetection: ChangeDetectionStrategy.Eager,
   styles: [
     `
-      .filters {
-        display: flex;
-        gap: var(--sp-2);
-        align-items: center;
-        flex-wrap: wrap;
-        padding: var(--sp-3) var(--sp-4);
-        border-bottom: 1px solid var(--line);
-      }
 
-      .filters .field select { width: auto; min-width: 140px; }
-      .filters .search { flex: 1 1 240px; }
+      .toolbar .field select { width: auto; min-width: 140px; }
+      .toolbar .search { flex: 1 1 240px; }
 
       .role-chips {
         display: flex;

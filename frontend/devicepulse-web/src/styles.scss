@@ -399,20 +399,15 @@ table.data td.num,
  * shadow and no background shift. It is used where content genuinely benefits from being
  * enclosed -- a table, a form, a chart -- and not as the default wrapper for every heading and
  * paragraph on the page.
- *
- * `.card` is kept as an alias so the components that still use it render correctly, but new
- * markup should say `.panel` and most regions should use `.section` instead.
  */
-.panel,
-.card {
+.panel {
   background: var(--panel);
   border: 1px solid var(--line);
   border-radius: var(--r-md);
   min-width: 0;
 }
 
-.panel-head,
-.card-header {
+.panel-head {
   display: flex;
   gap: var(--sp-3);
   align-items: center;
@@ -422,18 +417,13 @@ table.data td.num,
 }
 
 .panel-head h2,
-.panel-head h3,
-.card-header h2,
-.card-header h3 { margin: 0; font-size: var(--fs-body); }
+.panel-head h3 { margin: 0; font-size: var(--fs-body); }
 
-.panel-body,
-.card-body { padding: var(--sp-4); }
+.panel-body { padding: var(--sp-4); }
 
-.panel-body-flush,
-.card-body-flush { padding: 0; }
+.panel-body-flush { padding: 0; }
 
-.panel-foot,
-.card-footer {
+.panel-foot {
   display: flex;
   gap: var(--sp-3);
   align-items: center;
@@ -1046,8 +1036,6 @@ table.data.compact td { padding: var(--sp-1) var(--sp-3); }
   box-shadow: 0 1px 2px rgb(16 20 26 / 8%);
 }
 
-/* The old name, kept so components not yet migrated still render. */
-.pill-group { @extend .segmented; }
 
 /* ---------------------------------------------------------------- empty, loading */
 

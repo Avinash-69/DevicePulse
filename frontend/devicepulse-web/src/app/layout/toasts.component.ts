@@ -10,7 +10,7 @@ import { NotificationService } from '../core/services/notification.service';
   template: `
     <div class="toasts" aria-live="polite" aria-atomic="false">
       @for (notice of notifications.notices(); track notice.id) {
-        <div class="toast card" [class]="'toast-' + notice.kind" role="status">
+        <div class="toast panel" [class]="'toast-' + notice.kind" role="status">
           <div class="body">
             <p class="message">{{ notice.message }}</p>
             @if (notice.detail) {

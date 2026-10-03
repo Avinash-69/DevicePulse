@@ -47,8 +47,8 @@ type Kind = 'deviceType' | 'location';
 
       <div class="split split-even">
         <!-- Device types -->
-        <section class="card">
-          <div class="card-header">
+        <section class="panel">
+          <div class="panel-head">
             <h2>Device types</h2>
             <span class="spacer"></span>
             <dp-if-permitted [permission]="perm.referenceDataManage">
@@ -104,8 +104,8 @@ type Kind = 'deviceType' | 'location';
         </section>
 
         <!-- Locations -->
-        <section class="card">
-          <div class="card-header">
+        <section class="panel">
+          <div class="panel-head">
             <h2>Locations</h2>
             <span class="spacer"></span>
             <dp-if-permitted [permission]="perm.referenceDataManage">
@@ -174,7 +174,7 @@ type Kind = 'deviceType' | 'location';
 
     <dp-modal [open]="formOpen()" [title]="dialogTitle()" (closed)="formOpen.set(false)">
       <form [formGroup]="form" (ngSubmit)="save()">
-        <div class="card-body stack">
+        <div class="panel-body stack">
           <div class="field">
             <label for="refName">Name</label>
             <input
@@ -208,7 +208,7 @@ type Kind = 'deviceType' | 'location';
           }
         </div>
 
-        <div class="card-footer row">
+        <div class="panel-foot row">
           <span class="spacer"></span>
           <button type="button" class="btn" (click)="formOpen.set(false)">Cancel</button>
           <button type="submit" class="btn btn-primary" [disabled]="saving()">

@@ -60,7 +60,7 @@ import { AbsoluteTimePipe, DurationPipe } from '../../shared/utils/relative-time
       @if (loading()) {
         <div class="skeleton" style="height: 260px; border-radius: 12px"></div>
       } @else if (rules().length === 0) {
-        <div class="card">
+        <div class="panel">
           <dp-empty title="No alert rules" message="Without a rule, no alerts will ever be raised.">
             <dp-if-permitted [permission]="perm.alertRuleManage">
               <button type="button" class="btn btn-primary" (click)="openCreate()">Create the first rule</button>
@@ -70,8 +70,8 @@ import { AbsoluteTimePipe, DurationPipe } from '../../shared/utils/relative-time
       } @else {
         <div class="rules">
           @for (rule of rules(); track rule.alertRuleId) {
-            <article class="card rule" [class.disabled]="!rule.isEnabled">
-              <div class="card-body">
+            <article class="panel rule" [class.disabled]="!rule.isEnabled">
+              <div class="panel-body">
                 <div class="row row-wrap">
                   <dp-severity [severity]="rule.severity" />
                   <h3>{{ rule.name }}</h3>
@@ -117,7 +117,7 @@ import { AbsoluteTimePipe, DurationPipe } from '../../shared/utils/relative-time
               </div>
 
               <dp-if-permitted [permission]="perm.alertRuleManage">
-                <div class="card-footer row">
+                <div class="panel-foot row">
                   @if (!rule.isEnabled) {
                     <span class="badge badge-neutral">disabled</span>
                   }
@@ -139,7 +139,7 @@ import { AbsoluteTimePipe, DurationPipe } from '../../shared/utils/relative-time
       (closed)="formOpen.set(false)"
     >
       <form [formGroup]="form" (ngSubmit)="save()">
-        <div class="card-body stack">
+        <div class="panel-body stack">
           <div class="field">
             <label for="name">Name</label>
             <input id="name" type="text" formControlName="name" placeholder="High temperature" />
@@ -238,7 +238,7 @@ import { AbsoluteTimePipe, DurationPipe } from '../../shared/utils/relative-time
           }
         </div>
 
-        <div class="card-footer row">
+        <div class="panel-foot row">
           <span class="spacer"></span>
           <button type="button" class="btn" (click)="formOpen.set(false)">Cancel</button>
           <button type="submit" class="btn btn-primary" [disabled]="saving()">
@@ -265,7 +265,7 @@ import { AbsoluteTimePipe, DurationPipe } from '../../shared/utils/relative-time
         flex-direction: column;
       }
 
-      .rule .card-body { flex: 1 1 auto; }
+      .rule .panel-body { flex: 1 1 auto; }
 
       .rule.disabled { opacity: 0.68; }
 

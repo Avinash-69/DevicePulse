@@ -1,6 +1,6 @@
-import { Component, OnInit, inject, signal, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, computed, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { debounceTime, distinctUntilChanged } from 'rxjs';
 
 import { ApiService } from '../../core/services/api.service';
@@ -54,9 +54,9 @@ import { RelativeTimePipe } from '../../shared/utils/relative-time.pipe';
         </dp-if-permitted>
       </dp-page-header>
 
-      <div class="card">
+      <div class="panel">
         <!-- Filters -->
-        <div class="filters">
+        <div class="toolbar">
           <div class="field search">
             <input
               type="search"
@@ -103,10 +103,29 @@ import { RelativeTimePipe } from '../../shared/utils/relative-time.pipe';
             </select>
           </div>
 
-          @if (hasFilters()) {
-            <button type="button" class="btn btn-sm btn-ghost" (click)="clearFilters()">Clear</button>
-          }
         </div>
+
+        @if (activeFilters().length > 0) {
+          <div class="chips filter-row">
+            @for (chip of activeFilters(); track chip.field) {
+              <span class="chip">
+                <span class="chip-key">{{ chip.key }}</span>
+                <span>{{ chip.value }}</span>
+                <button
+                  type="button"
+                  [attr.aria-label]="'Remove ' + chip.key + ' filter'"
+                  (click)="clearFilter(chip.field)"
+                >
+                  &times;
+                </button>
+              </span>
+            }
+
+            <button type="button" class="btn btn-sm btn-ghost" (click)="clearFilters()">
+              Clear all
+            </button>
+          </div>
+        }
 
         @if (loading()) {
           <dp-loading-rows [count]="6" />
@@ -126,20 +145,20 @@ import { RelativeTimePipe } from '../../shared/utils/relative-time.pipe';
               <table class="data">
                 <thead>
                   <tr>
-                    <th class="sortable" (click)="sortBy('deviceName')">
-                      Device{{ sortIndicator('deviceName') }}
+                    <th [class]="sortClass('deviceName')" (click)="sortBy('deviceName')">
+                      Device
                     </th>
-                    <th class="sortable" (click)="sortBy('deviceCode')">
-                      Code{{ sortIndicator('deviceCode') }}
+                    <th [class]="sortClass('deviceCode')" (click)="sortBy('deviceCode')">
+                      Code
                     </th>
                     <th>Type</th>
                     <th>Location</th>
-                    <th class="sortable" (click)="sortBy('connectivityStatus')">
-                      Connectivity{{ sortIndicator('connectivityStatus') }}
+                    <th [class]="sortClass('connectivityStatus')" (click)="sortBy('connectivityStatus')">
+                      Connectivity
                     </th>
                     <th>Lifecycle</th>
-                    <th class="sortable" (click)="sortBy('lastSeenAt')">
-                      Last seen{{ sortIndicator('lastSeenAt') }}
+                    <th [class]="sortClass('lastSeenAt')" (click)="sortBy('lastSeenAt')">
+                      Last seen
                     </th>
                     <th class="right">Alerts</th>
                     <th>Key</th>
@@ -202,7 +221,7 @@ import { RelativeTimePipe } from '../../shared/utils/relative-time.pipe';
     <!-- Register -->
     <dp-modal [open]="createOpen()" title="Register a device" (closed)="createOpen.set(false)">
       <form [formGroup]="createForm" (ngSubmit)="create()">
-        <div class="card-body stack">
+        <div class="panel-body stack">
           <div class="field">
             <label for="deviceCode">Device code</label>
             <input
@@ -262,7 +281,7 @@ import { RelativeTimePipe } from '../../shared/utils/relative-time.pipe';
           }
         </div>
 
-        <div class="card-footer row">
+        <div class="panel-foot row">
           <span class="spacer"></span>
           <button type="button" class="btn" (click)="createOpen.set(false)">Cancel</button>
           <button type="submit" class="btn btn-primary" [disabled]="saving()">
@@ -278,18 +297,16 @@ import { RelativeTimePipe } from '../../shared/utils/relative-time.pipe';
   changeDetection: ChangeDetectionStrategy.Eager,
   styles: [
     `
-      .filters {
-        display: flex;
-        gap: var(--sp-2);
-        align-items: center;
-        flex-wrap: wrap;
-        padding: var(--sp-3) var(--sp-4);
+      /* Sits directly under the toolbar, so the filters and what they are doing read together. */
+      .filter-row {
+        padding: var(--sp-2) var(--sp-3);
         border-bottom: 1px solid var(--line);
       }
 
-      .filters .field { flex: 0 0 auto; }
-      .filters .field select { width: auto; min-width: 150px; }
-      .filters .search { flex: 1 1 260px; min-width: 200px; }
+
+      .toolbar .field { flex: 0 0 auto; }
+      .toolbar .field select { width: auto; min-width: 150px; }
+      .toolbar .search { flex: 1 1 260px; min-width: 200px; }
 
       a.badge { text-decoration: none; }
       a.badge:hover { text-decoration: underline; }
@@ -301,6 +318,7 @@ export class DeviceListComponent implements OnInit {
   private readonly auth = inject(AuthService);
   private readonly notifications = inject(NotificationService);
   private readonly fb = inject(FormBuilder);
+  private readonly route = inject(ActivatedRoute);
 
   readonly perm = Permissions;
 
@@ -325,6 +343,26 @@ export class DeviceListComponent implements OnInit {
   });
 
   ngOnInit(): void {
+    // Seeded from the URL so a filtered list is linkable and the top bar's search can navigate
+    // here rather than reaching into this component's state.
+    const term = this.route.snapshot.queryParamMap.get('search') ?? '';
+
+    if (term) {
+      this.searchControl.setValue(term, { emitEvent: false });
+      this.query.update((current) => ({ ...current, search: term }));
+    }
+
+    // A later search from the top bar arrives as a query-param change on a route that is
+    // already active, which does not re-run ngOnInit.
+    this.route.queryParamMap.subscribe((params) => {
+      const next = params.get('search') ?? '';
+
+      if (next !== (this.query().search ?? '')) {
+        this.searchControl.setValue(next, { emitEvent: false });
+        this.patchQuery({ search: next || undefined, page: 1 });
+      }
+    });
+
     this.load();
     this.loadReferenceData();
 
@@ -402,9 +440,53 @@ export class DeviceListComponent implements OnInit {
     });
   }
 
-  sortIndicator(column: string): string {
+  /**
+   * The header's classes for the current sort.
+   *
+   * A class rather than an appended arrow: the glyph lives in a fixed slot in the stylesheet,
+   * so the label does not shift sideways when the sort moves from one column to another.
+   */
+  sortClass(column: string): string {
     const current = this.query();
-    return current.sortBy === column ? (current.sortDescending ? ' ↓' : ' ↑') : '';
+
+    if (current.sortBy !== column) return 'sortable';
+
+    return current.sortDescending ? 'sortable sort-desc' : 'sortable sort-asc';
+  }
+
+  /**
+   * The filters currently narrowing the list, as removable chips.
+   *
+   * Five dropdowns do not tell an operator what is being filtered without reading all five.
+   * Naming each active filter, and letting it be dismissed individually, does.
+   */
+  readonly activeFilters = computed(() => {
+    const q = this.query();
+    const chips: { field: keyof DeviceQuery; key: string; value: string }[] = [];
+
+    if (q.search) chips.push({ field: 'search', key: 'matching', value: q.search });
+    if (q.connectivityStatus) chips.push({ field: 'connectivityStatus', key: 'link', value: q.connectivityStatus });
+    if (q.lifecycleStatus) chips.push({ field: 'lifecycleStatus', key: 'lifecycle', value: q.lifecycleStatus });
+
+    if (q.deviceTypeId) {
+      const name = this.deviceTypes().find((t) => t.deviceTypeId === q.deviceTypeId)?.name;
+      chips.push({ field: 'deviceTypeId', key: 'type', value: name ?? String(q.deviceTypeId) });
+    }
+
+    if (q.locationId) {
+      const name = this.locations().find((l) => l.locationId === q.locationId)?.name;
+      chips.push({ field: 'locationId', key: 'at', value: name ?? String(q.locationId) });
+    }
+
+    return chips;
+  });
+
+  clearFilter(field: keyof DeviceQuery): void {
+    if (field === 'search') {
+      this.searchControl.setValue('', { emitEvent: false });
+    }
+
+    this.patchQuery({ [field]: undefined, page: 1 } as Partial<DeviceQuery>);
   }
 
   hasFilters(): boolean {

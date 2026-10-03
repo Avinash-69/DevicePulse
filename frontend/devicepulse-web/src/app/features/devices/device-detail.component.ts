@@ -101,53 +101,53 @@ import { AbsoluteTimePipe, RelativeTimePipe } from '../../shared/utils/relative-
 
         <div class="stack-lg">
           <!-- Current state -->
-          <section class="facts grid">
-            <div class="card card-body">
+          <section class="facts panel">
+            <div class="fact">
               <span class="fact-label">Code</span>
               <span class="mono">{{ d.deviceCode }}</span>
             </div>
-            <div class="card card-body">
+            <div class="fact">
               <span class="fact-label">Connectivity</span>
               <dp-connectivity [status]="d.connectivityStatus" />
             </div>
-            <div class="card card-body">
+            <div class="fact">
               <span class="fact-label">Lifecycle</span>
               <dp-lifecycle [status]="d.lifecycleStatus" />
             </div>
-            <div class="card card-body">
+            <div class="fact">
               <span class="fact-label">Last seen</span>
               <span [title]="d.lastSeenAt ? (d.lastSeenAt | absoluteTime: true) : ''">
                 {{ d.lastSeenAt ? (d.lastSeenAt | relativeTime) : 'never reported' }}
               </span>
             </div>
-            <div class="card card-body">
+            <div class="fact">
               <span class="fact-label">Latest temperature</span>
               <span class="mono">
                 {{ latest() ? latest()!.temperature + ' °C' : '—' }}
               </span>
             </div>
-            <div class="card card-body">
+            <div class="fact">
               <span class="fact-label">Latest battery</span>
               <dp-battery [level]="latest()?.battery ?? null" />
             </div>
-            <div class="card card-body">
+            <div class="fact">
               <span class="fact-label">Latest signal</span>
               <span class="mono">
                 {{ latest() ? latest()!.signalStrength + ' dBm' : '—' }}
               </span>
             </div>
-            <div class="card card-body">
+            <div class="fact">
               <span class="fact-label">Registered</span>
               <span class="small">{{ d.createdAt | absoluteTime }}</span>
             </div>
           </section>
 
           <!-- Trend -->
-          <section class="card">
-            <div class="card-header">
+          <section class="panel">
+            <div class="panel-head">
               <h2>Telemetry trend</h2>
               <span class="spacer"></span>
-              <div class="pill-group">
+              <div class="segmented">
                 @for (option of trendOptions; track option.hours) {
                   <button
                     type="button"
@@ -159,15 +159,15 @@ import { AbsoluteTimePipe, RelativeTimePipe } from '../../shared/utils/relative-
                 }
               </div>
             </div>
-            <div class="card-body">
+            <div class="panel-body">
               <dp-trend-chart [points]="trend()" unit="°C" />
             </div>
           </section>
 
           <div class="split">
             <!-- Readings -->
-            <section class="card">
-              <div class="card-header">
+            <section class="panel">
+              <div class="panel-head">
                 <h2>Recent readings</h2>
                 <span class="spacer"></span>
                 <span class="muted small">newest first</span>
@@ -207,8 +207,8 @@ import { AbsoluteTimePipe, RelativeTimePipe } from '../../shared/utils/relative-
             </section>
 
             <!-- Alerts -->
-            <section class="card">
-              <div class="card-header">
+            <section class="panel">
+              <div class="panel-head">
                 <h2>Alerts</h2>
                 <span class="spacer"></span>
                 <a [routerLink]="['/alerts']" [queryParams]="{ deviceId: d.deviceId }" class="small">
@@ -248,7 +248,7 @@ import { AbsoluteTimePipe, RelativeTimePipe } from '../../shared/utils/relative-
     <!-- Edit -->
     <dp-modal [open]="editOpen()" title="Edit device" (closed)="editOpen.set(false)">
       <form [formGroup]="editForm" (ngSubmit)="saveEdit()">
-        <div class="card-body stack">
+        <div class="panel-body stack">
           <div class="field">
             <label for="editName">Display name</label>
             <input id="editName" type="text" formControlName="deviceName" />
@@ -294,7 +294,7 @@ import { AbsoluteTimePipe, RelativeTimePipe } from '../../shared/utils/relative-
           </div>
         </div>
 
-        <div class="card-footer row">
+        <div class="panel-foot row">
           <span class="spacer"></span>
           <button type="button" class="btn" (click)="editOpen.set(false)">Cancel</button>
           <button type="submit" class="btn btn-primary" [disabled]="busy()">
@@ -309,7 +309,7 @@ import { AbsoluteTimePipe, RelativeTimePipe } from '../../shared/utils/relative-
 
     <!-- Retire -->
     <dp-modal [open]="retireOpen()" title="Retire this device" (closed)="retireOpen.set(false)">
-      <div class="card-body stack">
+      <div class="panel-body stack">
         <p class="small">
           Retiring keeps the device and all of its telemetry and alert history, hides it from the
           active device list, closes its open alerts, and revokes its ingestion key. It is not a
@@ -322,7 +322,7 @@ import { AbsoluteTimePipe, RelativeTimePipe } from '../../shared/utils/relative-
         </div>
       </div>
 
-      <div class="card-footer row">
+      <div class="panel-foot row">
         <span class="spacer"></span>
         <button type="button" class="btn" (click)="retireOpen.set(false)">Cancel</button>
         <button type="button" class="btn btn-danger" (click)="retire()" [disabled]="busy()">
@@ -333,7 +333,7 @@ import { AbsoluteTimePipe, RelativeTimePipe } from '../../shared/utils/relative-
 
     <!-- The issued key, shown exactly once -->
     <dp-modal [open]="issuedKey() !== null" title="Ingestion key issued" (closed)="issuedKey.set(null)">
-      <div class="card-body stack">
+      <div class="panel-body stack">
         <p class="small">
           Copy this now. It is stored only as a hash, so it cannot be shown again — if it is
           lost, issue a new one.
@@ -350,7 +350,7 @@ import { AbsoluteTimePipe, RelativeTimePipe } from '../../shared/utils/relative-
         </p>
       </div>
 
-      <div class="card-footer row">
+      <div class="panel-foot row">
         <span class="spacer"></span>
         <button type="button" class="btn btn-primary" (click)="issuedKey.set(null)">Done</button>
       </div>
@@ -370,20 +370,34 @@ import { AbsoluteTimePipe, RelativeTimePipe } from '../../shared/utils/relative-
 
       .facts { grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); }
 
-      .facts .card-body {
+      /*
+       * The device's current state, as one strip rather than eight boxes. Hairline dividers
+       * separate the pairs; the containing panel is the only border. Read as a block, which is
+       * how an operator reads them -- "offline, last seen 40 minutes ago, battery 12%" is one
+       * thought, not three measurements.
+       */
+      .facts {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      }
+
+      .fact {
         display: grid;
         gap: var(--sp-1);
-        padding: var(--sp-3) var(--sp-4);
         align-content: start;
         justify-items: start;
+        padding: var(--sp-3) var(--sp-4);
+        border-right: 1px solid var(--line);
+        border-bottom: 1px solid var(--line);
+        min-width: 0;
       }
 
       .fact-label {
-        font-size: 0.7rem;
-        font-weight: 600;
+        font-size: var(--fs-micro);
+        font-weight: var(--fw-semibold);
         text-transform: uppercase;
-        letter-spacing: 0.04em;
-        color: var(--text-2);
+        letter-spacing: var(--tr-wide);
+        color: var(--text-3);
       }
 
       @media (max-width: 1200px) {
