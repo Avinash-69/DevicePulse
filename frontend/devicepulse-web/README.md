@@ -139,7 +139,7 @@ Mirror any new permission key in `core/auth/permissions.ts` to match the backend
   toolchain still carried a critical `piscina` RCE and a high `webpack-dev-middleware` path
   traversal. 22.2.1 is the first release that clears all of them, which is why CI can keep
   `npm audit --audit-level=high` strict instead of excluding dev dependencies. Requires Node
-  22.22+, 24.15+ or 26+, and TypeScript 6.
+  22.22.3+, 24.15+ or 26+, and TypeScript 6.
 - **Every component sets `ChangeDetectionStrategy.Eager`, and removing it would break the
   timestamps.** Angular 22 made `OnPush` the default, and the v22 migration added `Eager`
   everywhere to preserve the old behaviour. That is kept deliberately: `RelativeTimePipe` is
