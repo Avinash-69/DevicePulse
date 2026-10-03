@@ -134,6 +134,10 @@ public sealed class DevicePulseApiFactory : WebApplicationFactory<Program>, IAsy
             {
                 services.Remove(descriptor);
             }
+
+            // Except the live-event dispatcher: it changes nothing, and the live push tests need
+            // it running to deliver anything.
+            services.AddHostedService(sp => sp.GetRequiredService<DevicePulse.Api.Realtime.LiveEventDispatcher>());
         });
     }
 

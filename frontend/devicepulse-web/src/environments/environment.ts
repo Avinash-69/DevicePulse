@@ -6,6 +6,6 @@
 export const environment = {
   production: false,
   apiBaseUrl: 'http://localhost:5082/api/v1',
-  /** How often the dashboard re-fetches. Polling, deliberately, until SignalR arrives (§31). */
+  /** How often the dashboard re-fetches while the live connection is down (§31). */
   dashboardRefreshMs: 15_000,
 };

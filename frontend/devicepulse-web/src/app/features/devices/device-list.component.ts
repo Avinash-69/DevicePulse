@@ -1,4 +1,5 @@
-import { Component, OnInit, computed, inject, signal, ChangeDetectionStrategy } from '@angular/core';
+import { Component, DestroyRef, OnInit, computed, inject, signal, ChangeDetectionStrategy } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { debounceTime, distinctUntilChanged } from 'rxjs';
@@ -7,6 +8,7 @@ import { ApiService } from '../../core/services/api.service';
 import { AuthService } from '../../core/auth/auth.service';
 import { Permissions } from '../../core/auth/permissions';
 import { NotificationService } from '../../core/services/notification.service';
+import { RealtimeService } from '../../core/services/realtime.service';
 import { fieldErrorsFrom } from '../../core/interceptors/error.interceptor';
 import {
   ConnectivityStatus,
@@ -319,6 +321,8 @@ export class DeviceListComponent implements OnInit {
   private readonly notifications = inject(NotificationService);
   private readonly fb = inject(FormBuilder);
   private readonly route = inject(ActivatedRoute);
+  private readonly live = inject(RealtimeService);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly perm = Permissions;
 
@@ -366,6 +370,13 @@ export class DeviceListComponent implements OnInit {
     this.load();
     this.loadReferenceData();
 
+    // A device going offline or coming back re-fetches the current page in place. Re-fetched
+    // rather than patched, so a connectivity filter or sort stays correct for the moved row.
+    this.live
+      .refreshes({ devices: true })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.load(true));
+
     // Debounced so typing a search term issues one request when the user stops, not one per
     // keystroke. distinctUntilChanged stops a re-search when the value has not actually changed.
     this.searchControl.valueChanges
@@ -373,8 +384,10 @@ export class DeviceListComponent implements OnInit {
       .subscribe((term) => this.patchQuery({ search: term || undefined, page: 1 }));
   }
 
-  private load(): void {
-    this.loading.set(true);
+  private load(quiet = false): void {
+    if (!quiet) {
+      this.loading.set(true);
+    }
 
     this.api.getDevices(this.query()).subscribe({
       next: (page) => {
