@@ -1,0 +1,168 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  # Lets the pipeline be run by hand against a branch without pushing an empty commit.
+  workflow_dispatch:
+
+# A new push to the same branch cancels the previous run, so a queue of superseded builds does
+# not hold up the current one.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  DOTNET_VERSION: '10.0.x'
+  NODE_VERSION: '20.x'
+  DOTNET_NOLOGO: true
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+
+jobs:
+  backend:
+    name: Backend
+    runs-on: ubuntu-latest
+
+    services:
+      # The integration suite runs against a real SQL Server, because what it tests — filtered
+      # unique indexes, rowversion concurrency, cascade behaviour, SQL translation of grouped
+      # queries — cannot be modelled by a fake provider.
+      sql:
+        image: mcr.microsoft.com/mssql/server:2022-latest
+        env:
+          ACCEPT_EULA: 'Y'
+          MSSQL_SA_PASSWORD: ${{ secrets.CI_SQL_PASSWORD || 'Ci#DevicePulse2026' }}
+          MSSQL_PID: Developer
+        ports:
+          - 1433:1433
+        options: >-
+          --health-cmd "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"$MSSQL_SA_PASSWORD\" -C -Q 'SELECT 1'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 15
+          --health-start-period 30s
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('backend/**/*.csproj') }}
+          restore-keys: nuget-${{ runner.os }}-
+
+      - name: Restore
+        working-directory: backend
+        run: dotnet restore DevicePulse.slnx
+
+      # Warnings are errors here but not locally: a developer mid-change should not be blocked
+      # by an unused variable, while main should not accumulate them.
+      - name: Build
+        working-directory: backend
+        run: dotnet build DevicePulse.slnx --configuration Release --no-restore -warnaserror
+
+      - name: Verify formatting
+        working-directory: backend
+        run: dotnet format DevicePulse.slnx --verify-no-changes --no-restore
+
+      # Runs before the tests, so a known-vulnerable dependency fails the build at the point it
+      # is cheapest to notice (Appendix D.3). Scoped to transitive packages too, since most real
+      # advisories arrive that way.
+      - name: Scan dependencies for known vulnerabilities
+        working-directory: backend
+        run: |
+          set -o pipefail
+          dotnet list DevicePulse.slnx package --vulnerable --include-transitive 2>&1 | tee vulnerabilities.log
+
+          if grep -qiE '(Critical|High|Moderate)' vulnerabilities.log; then
+            echo "::error::Vulnerable dependencies found. See the log above."
+            exit 1
+          fi
+
+          echo "No vulnerable packages reported."
+
+      - name: Test
+        working-directory: backend/tests/DevicePulse.Tests
+        env:
+          # The factory reads these to reach the service container, overriding the
+          # localhost/trusted-connection default it uses on a developer machine.
+          DEVICEPULSE_TEST_SQL_SERVER: localhost,1433
+          DEVICEPULSE_TEST_SQL_USER: sa
+          DEVICEPULSE_TEST_SQL_PASSWORD: ${{ secrets.CI_SQL_PASSWORD || 'Ci#DevicePulse2026' }}
+        run: dotnet run --configuration Release --no-build
+
+  frontend:
+    name: Frontend
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend/devicepulse-web
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: frontend/devicepulse-web/package-lock.json
+
+      # npm ci, not npm install: it installs exactly the lockfile and fails if the manifest and
+      # lockfile disagree, so CI cannot silently build against different versions than a
+      # developer did.
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Audit dependencies
+        run: npm audit --audit-level=high
+
+      - name: Build
+        run: npm run build -- --configuration production
+
+      - name: Test
+        # The Karma launcher passes --no-sandbox, which headless Chrome needs on the runner.
+        run: npm run test -- --watch=false --browsers=ChromeHeadlessNoSandbox
+
+  docker:
+    name: Docker images
+    runs-on: ubuntu-latest
+    # Only after both suites pass: building images for code that does not work is wasted time.
+    needs: [backend, frontend]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      # Built but not pushed. There is no registry or environment to deploy to yet, and this
+      # step exists to prove the Dockerfiles still work — claiming a deployment that does not
+      # happen would be worse than not having one.
+      - name: Build API image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./backend
+          file: ./backend/src/DevicePulse.Api/Dockerfile
+          push: false
+          tags: devicepulse-api:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build web image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./frontend/devicepulse-web
+          file: ./frontend/devicepulse-web/Dockerfile
+          push: false
+          tags: devicepulse-web:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
