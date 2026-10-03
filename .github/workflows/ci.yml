@@ -1,10 +1,12 @@
 name: CI
 
+# Dev is the integration branch that feature PRs target; main only receives releases from Dev.
+# Both run the full pipeline, so nothing reaches main that was not already green on Dev.
 on:
   push:
-    branches: [main]
+    branches: [main, Dev]
   pull_request:
-    branches: [main]
+    branches: [main, Dev]
   # Lets the pipeline be run by hand against a branch without pushing an empty commit.
   workflow_dispatch:
 
