@@ -1,5 +1,4 @@
-import { CommonModule } from '@angular/common';
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Observable } from 'rxjs';
 
@@ -29,13 +28,12 @@ type Kind = 'deviceType' | 'location';
   selector: 'dp-reference-data',
   standalone: true,
   imports: [
-    CommonModule,
     ReactiveFormsModule,
     PageHeaderComponent,
     EmptyStateComponent,
     ModalComponent,
-    IfPermittedComponent,
-  ],
+    IfPermittedComponent
+],
   template: `
     <div class="page">
       <dp-page-header
@@ -224,6 +222,7 @@ type Kind = 'deviceType' | 'location';
       </form>
     </dp-modal>
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styles: [
     `
       .two-up {

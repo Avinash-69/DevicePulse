@@ -1,5 +1,4 @@
-import { CommonModule } from '@angular/common';
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 
@@ -11,7 +10,7 @@ import { ToastsComponent } from '../../layout/toasts.component';
 @Component({
   selector: 'dp-login',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, ToastsComponent],
+  imports: [ReactiveFormsModule, ToastsComponent],
   template: `
     <div class="login-page">
       <button
@@ -90,6 +89,7 @@ import { ToastsComponent } from '../../layout/toasts.component';
 
     <dp-toasts />
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styles: [
     `
       .login-page {

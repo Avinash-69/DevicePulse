@@ -1,5 +1,4 @@
-import { CommonModule } from '@angular/common';
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 
@@ -12,7 +11,7 @@ import { PageHeaderComponent } from '../../shared/components/ui.components';
 @Component({
   selector: 'dp-account',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, PageHeaderComponent],
+  imports: [ReactiveFormsModule, PageHeaderComponent],
   template: `
     <div class="page">
       <dp-page-header title="Your account" description="Your roles, your effective permissions, and your password." />
@@ -111,6 +110,7 @@ import { PageHeaderComponent } from '../../shared/components/ui.components';
       </div>
     </div>
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styles: [
     `
       .two-up {

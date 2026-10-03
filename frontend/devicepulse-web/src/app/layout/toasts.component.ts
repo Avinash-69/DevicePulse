@@ -1,5 +1,4 @@
-import { CommonModule } from '@angular/common';
-import { Component, inject } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 
 import { NotificationService } from '../core/services/notification.service';
 
@@ -7,7 +6,7 @@ import { NotificationService } from '../core/services/notification.service';
 @Component({
   selector: 'dp-toasts',
   standalone: true,
-  imports: [CommonModule],
+  imports: [],
   template: `
     <div class="toasts" aria-live="polite" aria-atomic="false">
       @for (notice of notifications.notices(); track notice.id) {
@@ -31,6 +30,7 @@ import { NotificationService } from '../core/services/notification.service';
       }
     </div>
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styles: [
     `
       .toasts {

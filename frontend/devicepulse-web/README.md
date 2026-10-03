@@ -1,6 +1,6 @@
 # DevicePulse client
 
-Angular 19 SPA for the DevicePulse API. Standalone components, signals, lazily-loaded routes.
+Angular 22 SPA for the DevicePulse API. Standalone components, signals, lazily-loaded routes.
 
 See the [root README](../../README.md) for what the system does. This file covers running and
 extending the client.
@@ -93,7 +93,18 @@ Mirror any new permission key in `core/auth/permissions.ts` to match the backend
   the union of the payload types, as `reference-data.component.ts` does.
 - **`RelativeTimePipe` is impure on purpose.** A pure pipe would evaluate once and then display
   "just now" forever — frozen while looking live.
-- **Angular 19, not 20**, because the installed Node runtime is 20.11 and Angular 20 requires
-  ≥ 20.19. Upgrading Node lifts this.
+- **Angular is on 22, and the floor is a security one rather than a preference.** The 19.2.x
+  line ended at 19.2.25 with four open advisories and no patch, and on 20.x the build
+  toolchain still carried a critical `piscina` RCE and a high `webpack-dev-middleware` path
+  traversal. 22.2.1 is the first release that clears all of them, which is why CI can keep
+  `npm audit --audit-level=high` strict instead of excluding dev dependencies. Requires Node
+  22.22+, 24.15+ or 26+, and TypeScript 6.
+- **Every component sets `ChangeDetectionStrategy.Eager`, and removing it would break the
+  timestamps.** Angular 22 made `OnPush` the default, and the v22 migration added `Eager`
+  everywhere to preserve the old behaviour. That is kept deliberately: `RelativeTimePipe` is
+  impure and depends on being re-evaluated on every check, so under `OnPush` a view with no
+  signal change would stop being checked and "4 minutes ago" would freeze in place. Moving to
+  `OnPush` is a worthwhile optimisation for a signal-based app this size, but it has to be done
+  together with converting that pipe to a timer-driven signal, and verified in a browser.
 - **Tests run in headless Chrome with `--no-sandbox`** via the launcher in `karma.conf.js`,
   which CI containers need. Set `CHROME_BIN` if Chrome is not discovered automatically.

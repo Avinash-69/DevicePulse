@@ -1,5 +1,4 @@
-import { CommonModule } from '@angular/common';
-import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, computed, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
 import { ApiService } from '../../core/services/api.service';
@@ -38,7 +37,6 @@ import { RelativeTimePipe } from '../../shared/utils/relative-time.pipe';
   selector: 'dp-dashboard',
   standalone: true,
   imports: [
-    CommonModule,
     RouterLink,
     PageHeaderComponent,
     StatComponent,
@@ -49,8 +47,8 @@ import { RelativeTimePipe } from '../../shared/utils/relative-time.pipe';
     ConnectivityBadgeComponent,
     SeverityBadgeComponent,
     EmptyStateComponent,
-    RelativeTimePipe,
-  ],
+    RelativeTimePipe
+],
   template: `
     <div class="page">
       <dp-page-header
@@ -243,6 +241,7 @@ import { RelativeTimePipe } from '../../shared/utils/relative-time.pipe';
       }
     </div>
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styles: [
     `
       .two-up {

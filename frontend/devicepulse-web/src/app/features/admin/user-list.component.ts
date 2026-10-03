@@ -1,5 +1,4 @@
-import { CommonModule } from '@angular/common';
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { debounceTime, distinctUntilChanged } from 'rxjs';
 
@@ -30,7 +29,6 @@ import { AbsoluteTimePipe, RelativeTimePipe } from '../../shared/utils/relative-
   selector: 'dp-user-list',
   standalone: true,
   imports: [
-    CommonModule,
     ReactiveFormsModule,
     PageHeaderComponent,
     PaginatorComponent,
@@ -39,8 +37,8 @@ import { AbsoluteTimePipe, RelativeTimePipe } from '../../shared/utils/relative-
     ModalComponent,
     IfPermittedComponent,
     RelativeTimePipe,
-    AbsoluteTimePipe,
-  ],
+    AbsoluteTimePipe
+],
   template: `
     <div class="page">
       <dp-page-header title="Users" description="Accounts and the roles they hold.">
@@ -290,6 +288,7 @@ import { AbsoluteTimePipe, RelativeTimePipe } from '../../shared/utils/relative-
       </div>
     </dp-modal>
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styles: [
     `
       .filters {

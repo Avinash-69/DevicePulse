@@ -1,5 +1,4 @@
-import { CommonModule } from '@angular/common';
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 
 import { ApiService } from '../../core/services/api.service';
@@ -28,14 +27,13 @@ import { AbsoluteTimePipe, RelativeTimePipe } from '../../shared/utils/relative-
   selector: 'dp-settings',
   standalone: true,
   imports: [
-    CommonModule,
     ReactiveFormsModule,
     PageHeaderComponent,
     EmptyStateComponent,
     ModalComponent,
     AbsoluteTimePipe,
-    RelativeTimePipe,
-  ],
+    RelativeTimePipe
+],
   template: `
     <div class="page">
       <dp-page-header
@@ -284,6 +282,7 @@ import { AbsoluteTimePipe, RelativeTimePipe } from '../../shared/utils/relative-
       </div>
     </dp-modal>
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styles: [
     `
       .settings { display: grid; }

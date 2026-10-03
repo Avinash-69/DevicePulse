@@ -1,5 +1,4 @@
-import { CommonModule } from '@angular/common';
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { debounceTime, distinctUntilChanged } from 'rxjs';
 
@@ -27,15 +26,14 @@ import { AbsoluteTimePipe, RelativeTimePipe } from '../../shared/utils/relative-
   selector: 'dp-audit-log',
   standalone: true,
   imports: [
-    CommonModule,
     ReactiveFormsModule,
     PageHeaderComponent,
     PaginatorComponent,
     EmptyStateComponent,
     LoadingRowsComponent,
     RelativeTimePipe,
-    AbsoluteTimePipe,
-  ],
+    AbsoluteTimePipe
+],
   template: `
     <div class="page">
       <dp-page-header
@@ -157,6 +155,7 @@ import { AbsoluteTimePipe, RelativeTimePipe } from '../../shared/utils/relative-
       </div>
     </div>
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styles: [
     `
       .filters {

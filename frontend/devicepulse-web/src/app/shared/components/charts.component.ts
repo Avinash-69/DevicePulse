@@ -1,5 +1,4 @@
-import { CommonModule } from '@angular/common';
-import { Component, computed, input } from '@angular/core';
+import { Component, computed, input, ChangeDetectionStrategy } from '@angular/core';
 
 import { TelemetryTrendPoint } from '../../core/models/api.models';
 
@@ -34,7 +33,7 @@ export interface BarDatum {
 @Component({
   selector: 'dp-trend-chart',
   standalone: true,
-  imports: [CommonModule],
+  imports: [],
   template: `
     @if (points().length < 2) {
       <div class="no-data muted small">
@@ -88,6 +87,7 @@ export interface BarDatum {
       </figure>
     }
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styles: [
     `
       .chart { margin: 0; }
@@ -284,7 +284,7 @@ function formatBucket(iso: string | undefined): string {
 @Component({
   selector: 'dp-bar-chart',
   standalone: true,
-  imports: [CommonModule],
+  imports: [],
   template: `
     @if (data().length === 0) {
       <p class="muted small">No data yet.</p>
@@ -320,6 +320,7 @@ function formatBucket(iso: string | undefined): string {
       }
     }
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styles: [
     `
       .bars {
@@ -425,7 +426,7 @@ export interface DonutSlice {
 @Component({
   selector: 'dp-donut',
   standalone: true,
-  imports: [CommonModule],
+  imports: [],
   template: `
     @if (total() === 0) {
       <p class="muted small">{{ emptyMessage() }}</p>
@@ -466,6 +467,7 @@ export interface DonutSlice {
       </div>
     }
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styles: [
     `
       .donut-wrap {
@@ -567,7 +569,7 @@ export class DonutChartComponent {
 @Component({
   selector: 'dp-battery',
   standalone: true,
-  imports: [CommonModule],
+  imports: [],
   template: `
     @if (level() === null) {
       <span class="subtle small">&mdash;</span>
@@ -580,6 +582,7 @@ export class DonutChartComponent {
       </span>
     }
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styles: [
     `
       .battery {

@@ -1,5 +1,4 @@
-import { CommonModule } from '@angular/common';
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 
 import { ApiService } from '../../core/services/api.service';
@@ -39,7 +38,6 @@ import { AbsoluteTimePipe, DurationPipe } from '../../shared/utils/relative-time
   selector: 'dp-alert-rules',
   standalone: true,
   imports: [
-    CommonModule,
     ReactiveFormsModule,
     PageHeaderComponent,
     SeverityBadgeComponent,
@@ -47,8 +45,8 @@ import { AbsoluteTimePipe, DurationPipe } from '../../shared/utils/relative-time
     ModalComponent,
     IfPermittedComponent,
     AbsoluteTimePipe,
-    DurationPipe,
-  ],
+    DurationPipe
+],
   template: `
     <div class="page">
       <dp-page-header
@@ -254,6 +252,7 @@ import { AbsoluteTimePipe, DurationPipe } from '../../shared/utils/relative-time
       </form>
     </dp-modal>
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styles: [
     `
       .rules {

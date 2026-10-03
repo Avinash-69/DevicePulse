@@ -1,5 +1,4 @@
-import { CommonModule } from '@angular/common';
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { debounceTime, distinctUntilChanged } from 'rxjs';
@@ -35,7 +34,6 @@ import { RelativeTimePipe } from '../../shared/utils/relative-time.pipe';
   selector: 'dp-device-list',
   standalone: true,
   imports: [
-    CommonModule,
     ReactiveFormsModule,
     RouterLink,
     PageHeaderComponent,
@@ -46,8 +44,8 @@ import { RelativeTimePipe } from '../../shared/utils/relative-time.pipe';
     LoadingRowsComponent,
     ModalComponent,
     IfPermittedComponent,
-    RelativeTimePipe,
-  ],
+    RelativeTimePipe
+],
   template: `
     <div class="page">
       <dp-page-header title="Devices" description="Every registered device and its current health.">
@@ -277,6 +275,7 @@ import { RelativeTimePipe } from '../../shared/utils/relative-time.pipe';
       </form>
     </dp-modal>
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styles: [
     `
       .filters {

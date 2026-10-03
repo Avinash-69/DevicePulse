@@ -1,5 +1,4 @@
-import { CommonModule } from '@angular/common';
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 
 import { ApiService } from '../../core/services/api.service';
@@ -38,12 +37,11 @@ import {
   selector: 'dp-simulator',
   standalone: true,
   imports: [
-    CommonModule,
     ReactiveFormsModule,
     PageHeaderComponent,
     CopyButtonComponent,
-    IfPermittedComponent,
-  ],
+    IfPermittedComponent
+],
   template: `
     <div class="page">
       <dp-page-header
@@ -328,6 +326,7 @@ import {
       </div>
     </div>
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styles: [
     `
       .two-up {

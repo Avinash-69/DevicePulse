@@ -1,5 +1,4 @@
-import { CommonModule } from '@angular/common';
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 
@@ -24,7 +23,6 @@ import { AbsoluteTimePipe, RelativeTimePipe } from '../../shared/utils/relative-
   selector: 'dp-alert-list',
   standalone: true,
   imports: [
-    CommonModule,
     ReactiveFormsModule,
     RouterLink,
     PageHeaderComponent,
@@ -36,8 +34,8 @@ import { AbsoluteTimePipe, RelativeTimePipe } from '../../shared/utils/relative-
     ModalComponent,
     IfPermittedComponent,
     RelativeTimePipe,
-    AbsoluteTimePipe,
-  ],
+    AbsoluteTimePipe
+],
   template: `
     <div class="page">
       <dp-page-header
@@ -207,6 +205,7 @@ import { AbsoluteTimePipe, RelativeTimePipe } from '../../shared/utils/relative-
       </div>
     </dp-modal>
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styles: [
     `
       .filters {

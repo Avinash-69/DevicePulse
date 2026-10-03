@@ -1,5 +1,4 @@
-import { CommonModule } from '@angular/common';
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 
 import { AuthService } from '../core/auth/auth.service';
@@ -25,7 +24,7 @@ interface NavItem {
 @Component({
   selector: 'dp-shell',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, ToastsComponent],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, ToastsComponent],
   template: `
     <div class="shell" [class.sidebar-open]="sidebarOpen()">
       <aside class="sidebar">
@@ -125,6 +124,7 @@ interface NavItem {
 
     <dp-toasts />
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styles: [
     `
       .shell {

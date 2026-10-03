@@ -1,4 +1,3 @@
-import { CommonModule } from '@angular/common';
 import {
   Component,
   EventEmitter,
@@ -8,6 +7,7 @@ import {
   inject,
   input,
   numberAttribute,
+  ChangeDetectionStrategy
 } from '@angular/core';
 
 import { AlertSeverity, AlertStatus, ConnectivityStatus, LifecycleStatus } from '../../core/models/api.models';
@@ -26,7 +26,7 @@ import { NotificationService } from '../../core/services/notification.service';
 @Component({
   selector: 'dp-page-header',
   standalone: true,
-  imports: [CommonModule],
+  imports: [],
   template: `
     <header class="header">
       <div class="titles">
@@ -40,6 +40,7 @@ import { NotificationService } from '../../core/services/notification.service';
       </div>
     </header>
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styles: [
     `
       .header {
@@ -71,7 +72,7 @@ export class PageHeaderComponent {
 @Component({
   selector: 'dp-stat',
   standalone: true,
-  imports: [CommonModule],
+  imports: [],
   template: `
     <div class="stat card" [class.accent]="accent()">
       <span class="label">{{ label() }}</span>
@@ -81,6 +82,7 @@ export class PageHeaderComponent {
       }
     </div>
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styles: [
     `
       .stat {
@@ -121,7 +123,8 @@ export class StatComponent {
 @Component({
   selector: 'dp-connectivity',
   standalone: true,
-  imports: [CommonModule],
+  imports: [],
+  changeDetection: ChangeDetectionStrategy.Eager,
   template: `
     <span class="badge" [class]="cssClass()">
       <span class="dot"></span>{{ status() }}
@@ -149,7 +152,8 @@ export class ConnectivityBadgeComponent {
 @Component({
   selector: 'dp-lifecycle',
   standalone: true,
-  imports: [CommonModule],
+  imports: [],
+  changeDetection: ChangeDetectionStrategy.Eager,
   template: `<span class="badge" [class]="cssClass()">{{ status() }}</span>`,
 })
 export class LifecycleBadgeComponent {
@@ -173,12 +177,13 @@ export class LifecycleBadgeComponent {
 @Component({
   selector: 'dp-severity',
   standalone: true,
-  imports: [CommonModule],
+  imports: [],
   template: `
     <span class="sev" [style.--sev]="color()">
       <span class="dot"></span>{{ severity() }}
     </span>
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styles: [
     `
       .sev {
@@ -223,7 +228,8 @@ export function severityColor(severity: AlertSeverity | null): string {
 @Component({
   selector: 'dp-alert-status',
   standalone: true,
-  imports: [CommonModule],
+  imports: [],
+  changeDetection: ChangeDetectionStrategy.Eager,
   template: `<span class="badge" [class]="cssClass()">{{ status() }}</span>`,
 })
 export class AlertStatusBadgeComponent {
@@ -250,7 +256,7 @@ export class AlertStatusBadgeComponent {
 @Component({
   selector: 'dp-paginator',
   standalone: true,
-  imports: [CommonModule],
+  imports: [],
   template: `
     @if (totalCount() > 0) {
       <div class="paginator">
@@ -293,6 +299,7 @@ export class AlertStatusBadgeComponent {
       </div>
     }
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styles: [
     `
       .paginator {
@@ -335,7 +342,7 @@ export class PaginatorComponent {
 @Component({
   selector: 'dp-loading-rows',
   standalone: true,
-  imports: [CommonModule],
+  imports: [],
   template: `
     <div class="rows" [attr.aria-busy]="true" aria-label="Loading">
       @for (row of placeholders(); track $index) {
@@ -343,6 +350,7 @@ export class PaginatorComponent {
       }
     </div>
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styles: [
     `
       .rows { display: grid; gap: 0.85rem; padding: 1.1rem; }
@@ -358,7 +366,8 @@ export class LoadingRowsComponent {
 @Component({
   selector: 'dp-empty',
   standalone: true,
-  imports: [CommonModule],
+  imports: [],
+  changeDetection: ChangeDetectionStrategy.Eager,
   template: `
     <div class="empty-state">
       <h3>{{ title() }}</h3>
@@ -383,7 +392,7 @@ export class EmptyStateComponent {
 @Component({
   selector: 'dp-modal',
   standalone: true,
-  imports: [CommonModule],
+  imports: [],
   template: `
     @if (open()) {
       <div
@@ -413,6 +422,7 @@ export class EmptyStateComponent {
       </div>
     }
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styles: [
     `
       .backdrop {
@@ -452,7 +462,8 @@ export class ModalComponent {
 @Component({
   selector: 'dp-copy',
   standalone: true,
-  imports: [CommonModule],
+  imports: [],
+  changeDetection: ChangeDetectionStrategy.Eager,
   template: `
     <button type="button" class="btn btn-sm" (click)="copy()" [attr.aria-label]="'Copy ' + label()">
       {{ copied ? 'Copied' : 'Copy' }}
@@ -489,7 +500,8 @@ export class CopyButtonComponent {
 @Component({
   selector: 'dp-if-permitted',
   standalone: true,
-  imports: [CommonModule],
+  imports: [],
+  changeDetection: ChangeDetectionStrategy.Eager,
   template: `
     @if (allowed()) {
       <ng-content />

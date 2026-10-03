@@ -1,5 +1,4 @@
-import { CommonModule } from '@angular/common';
-import { Component, OnInit, computed, inject, input, numberAttribute, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, input, numberAttribute, signal, ChangeDetectionStrategy } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 
@@ -44,7 +43,6 @@ import { AbsoluteTimePipe, RelativeTimePipe } from '../../shared/utils/relative-
   selector: 'dp-device-detail',
   standalone: true,
   imports: [
-    CommonModule,
     ReactiveFormsModule,
     RouterLink,
     PageHeaderComponent,
@@ -59,8 +57,8 @@ import { AbsoluteTimePipe, RelativeTimePipe } from '../../shared/utils/relative-
     IfPermittedComponent,
     CopyButtonComponent,
     RelativeTimePipe,
-    AbsoluteTimePipe,
-  ],
+    AbsoluteTimePipe
+],
   template: `
     <div class="page">
       @if (device(); as d) {
@@ -358,6 +356,7 @@ import { AbsoluteTimePipe, RelativeTimePipe } from '../../shared/utils/relative-
       </div>
     </dp-modal>
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styles: [
     `
       .notice {

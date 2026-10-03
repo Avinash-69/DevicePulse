@@ -4,7 +4,7 @@ An IoT device monitoring and management platform: register devices, ingest telem
 device health conditions through runtime-configurable alert rules, and administer users, roles,
 permissions and business settings — all without a code change or a redeploy.
 
-ASP.NET Core 10 · Angular 19 · SQL Server · EF Core
+ASP.NET Core 10 · Angular 22 · SQL Server · EF Core
 
 ---
 
@@ -43,7 +43,7 @@ Open <http://localhost:8080>. The API is proxied under the same origin at `/api/
 
 ### Option 2 — Locally
 
-Requires the .NET 10 SDK, Node 20+, and a reachable SQL Server.
+Requires the .NET 10 SDK, Node 22.22+ / 24.15+ / 26+, and a reachable SQL Server.
 
 ```bash
 # 1. Development secrets (connection string, signing key, seed password).
@@ -254,8 +254,6 @@ comes from the credential, never from the request body.
 
 ## Notes and known constraints
 
-- **Angular 19, not 20**, because the installed Node runtime is 20.11 and Angular 20 requires
-  ≥ 20.19. Upgrading Node lifts this.
 - **Migrations run at startup**, which suits a single instance and keeps setup to one command.
   Scaling the API out means moving them to a deploy step; several instances racing to migrate
   the same database is a real failure mode. The behaviour is behind

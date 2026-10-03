@@ -1,5 +1,4 @@
-import { CommonModule } from '@angular/common';
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 
 import { ApiService } from '../../core/services/api.service';
@@ -30,13 +29,12 @@ import {
   selector: 'dp-role-list',
   standalone: true,
   imports: [
-    CommonModule,
     ReactiveFormsModule,
     PageHeaderComponent,
     EmptyStateComponent,
     ModalComponent,
-    IfPermittedComponent,
-  ],
+    IfPermittedComponent
+],
   template: `
     <div class="page">
       <dp-page-header
@@ -255,6 +253,7 @@ import {
       }
     </dp-modal>
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styles: [
     `
       .roles {
