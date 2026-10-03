@@ -22,7 +22,7 @@ ASP.NET Core 10 · Angular 22 · SQL Server · EF Core
 | **Dashboard** | Fleet counters, temperature trend with min/max band, severity breakdown, distribution, "needs attention" list |
 | **Background work** | Offline detection sweeper, data retention worker |
 | **Simulator** | Separate console app driving a configurable virtual fleet, with measured throughput and latency output |
-| **Engineering** | 137 backend tests, 14 frontend tests, ProblemDetails error contract, correlation IDs, rate limiting, health endpoints, Docker, CI |
+| **Engineering** | 137 backend tests, 17 frontend tests, ProblemDetails error contract, correlation IDs, rate limiting, health endpoints, Docker, CI |
 
 Not yet built: SignalR real-time push, Redis, a message queue, Keycloak, multi-tenancy, and
 notification channels. Those are the project's planned later phases, and nothing in the UI
@@ -210,7 +210,7 @@ submission through the actual endpoint.
 # skip cleanly (rather than failing) if there is none.
 cd backend/tests/DevicePulse.Tests && dotnet run
 
-# Frontend — 14 tests, headless Chrome.
+# Frontend — 17 tests, headless Chrome.
 cd frontend/devicepulse-web && npm test -- --watch=false
 ```
 

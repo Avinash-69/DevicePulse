@@ -103,8 +103,8 @@ import { AbsoluteTimePipe, RelativeTimePipe } from '../../shared/utils/relative-
                     <th>Status</th>
                     <th>Device</th>
                     <th>What happened</th>
-                    <th>Rule</th>
-                    <th>Raised</th>
+                    <th class="col-optional">Rule</th>
+                    <th class="col-optional">Raised</th>
                     <th class="right">Actions</th>
                   </tr>
                 </thead>
@@ -123,8 +123,8 @@ import { AbsoluteTimePipe, RelativeTimePipe } from '../../shared/utils/relative-
                           <div class="text-3 small">Resolution: {{ alert.resolutionNote }}</div>
                         }
                       </td>
-                      <td class="text-2 small">{{ alert.alertRuleName ?? 'rule deleted' }}</td>
-                      <td class="text-2 small nowrap" [title]="alert.createdAt | absoluteTime: true">
+                      <td class="text-2 small col-optional">{{ alert.alertRuleName ?? 'rule deleted' }}</td>
+                      <td class="text-2 small nowrap col-optional" [title]="alert.createdAt | absoluteTime: true">
                         {{ alert.createdAt | relativeTime }}
                       </td>
                       <td class="right nowrap">
@@ -210,7 +210,7 @@ import { AbsoluteTimePipe, RelativeTimePipe } from '../../shared/utils/relative-
 
       .toolbar .field select { width: auto; min-width: 150px; }
 
-      .message { max-width: 420px; line-height: 1.4; }
+      .message { min-width: 180px; max-width: 420px; line-height: 1.4; }
 
       .clear-chip {
         padding: 0 0 0 var(--sp-1);

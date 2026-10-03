@@ -86,7 +86,7 @@ export class PageHeaderComponent {
 }
 
 /**
- * A readout: a small uppercase label over a large tabular figure.
+ * A readout: a small label over a large tabular figure.
  *
  * Deliberately not a card. Five bordered, rounded, shadowed metric boxes in a row is the most
  * recognisable template pattern there is; bare readouts separated by space read as an
@@ -142,7 +142,9 @@ export class ConnectivityBadgeComponent {
   readonly toneClass = computed(() => {
     switch (this.status()) {
       case 'Online':
-        return 'stat-ok';
+        // The normal state: a green marker beside plain text. A column of forty green words
+        // made "fine" the loudest thing in the table.
+        return 'stat-calm stat-ok';
       case 'Offline':
         return 'stat-danger';
       default:
@@ -191,8 +193,9 @@ export class LifecycleBadgeComponent {
 /**
  * Severity, on the monotonic scale.
  *
- * The marker is a square rather than a round dot: squares read as steps on a scale, circles
- * read as an on/off light, and severity is an ordering.
+ * Drawn as a four-step level meter beside the word: Info lights none, Critical lights all four.
+ * The steps make the ordering readable down a column without relying on telling five hues apart,
+ * which also keeps it legible for colour-blind operators.
  */
 @Component({
   selector: 'dp-severity',
@@ -200,7 +203,12 @@ export class LifecycleBadgeComponent {
   imports: [],
   template: `
     <span class="sev" [style.--sev]="color()">
-      <span class="tick"></span>{{ severity() }}
+      <span class="meter" aria-hidden="true">
+        @for (step of steps; track step) {
+          <i [class.on]="step <= level()"></i>
+        }
+      </span>
+      {{ severity() }}
     </span>
   `,
   changeDetection: ChangeDetectionStrategy.Eager,
@@ -211,25 +219,56 @@ export class LifecycleBadgeComponent {
         gap: var(--sp-2);
         align-items: center;
         font-size: var(--fs-sm);
-        font-weight: var(--fw-medium);
-        color: var(--sev);
+        color: var(--text);
         white-space: nowrap;
       }
 
-      .tick {
-        width: 6px;
-        height: 6px;
-        background: var(--sev);
-        border-radius: 1px;
-        flex: 0 0 auto;
+      .meter {
+        display: inline-flex;
+        gap: 2px;
+        align-items: flex-end;
+        height: 10px;
       }
+
+      .meter i {
+        width: 3px;
+        background: var(--line-strong);
+        border-radius: 0.5px;
+      }
+
+      .meter i:nth-child(1) { height: 4px; }
+      .meter i:nth-child(2) { height: 6px; }
+      .meter i:nth-child(3) { height: 8px; }
+      .meter i:nth-child(4) { height: 10px; }
+
+      .meter i.on { background: var(--sev); }
     `,
   ],
 })
 export class SeverityBadgeComponent {
   readonly severity = input.required<AlertSeverity>();
 
+  protected readonly steps = [1, 2, 3, 4];
+
   readonly color = computed(() => severityColor(this.severity()));
+
+  readonly level = computed(() => severityLevel(this.severity()));
+}
+
+/** Info 0 through Critical 4: how many steps of the meter light up. */
+export function severityLevel(severity: AlertSeverity | null): number {
+  switch (severity) {
+    case 'Critical':
+      return 4;
+    case 'High':
+      return 3;
+    case 'Medium':
+      return 2;
+    case 'Low':
+      return 1;
+    default:
+      return 0;
+  }
 }
 
 export function severityColor(severity: AlertSeverity | null): string {
@@ -267,9 +306,9 @@ export class AlertStatusBadgeComponent {
   readonly toneClass = computed(() => {
     switch (this.status()) {
       case 'Open':
-        return 'stat-danger';
+        return 'stat-calm stat-danger';
       case 'Acknowledged':
-        return 'stat-warn';
+        return 'stat-calm stat-warn';
       default:
         return 'stat-quiet';
     }

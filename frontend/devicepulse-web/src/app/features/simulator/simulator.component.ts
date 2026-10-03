@@ -198,15 +198,15 @@ import {
               <dl class="state">
                 <div>
                   <dt>Devices reporting</dt>
-                  <dd class="mono">{{ onlineCount() }}</dd>
+                  <dd class="num">{{ onlineCount() }}</dd>
                 </div>
                 <div>
                   <dt>Devices silent</dt>
-                  <dd class="mono">{{ offlineCount() }}</dd>
+                  <dd class="num">{{ offlineCount() }}</dd>
                 </div>
                 <div>
                   <dt>Never reported</dt>
-                  <dd class="mono">{{ unknownCount() }}</dd>
+                  <dd class="num">{{ unknownCount() }}</dd>
                 </div>
                 <div>
                   <dt>With an ingestion key</dt>
@@ -371,11 +371,9 @@ import {
       }
 
       .state dt {
-        font-size: 0.68rem;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.04em;
-        color: var(--text-3);
+        font-size: var(--fs-meta);
+        font-weight: var(--fw-medium);
+        color: var(--text-2);
       }
 
       .state dd {

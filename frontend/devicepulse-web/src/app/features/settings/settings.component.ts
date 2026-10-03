@@ -41,7 +41,7 @@ import { AbsoluteTimePipe, RelativeTimePipe } from '../../shared/utils/relative-
       />
 
       @if (loading()) {
-        <div class="skeleton" style="height: 320px; border-radius: 12px"></div>
+        <div class="skeleton" style="height: 320px"></div>
       } @else if (settings().length === 0) {
         <div class="panel">
           <dp-empty title="No settings" message="The backend has not seeded its settings catalog yet." />
@@ -266,7 +266,7 @@ import { AbsoluteTimePipe, RelativeTimePipe } from '../../shared/utils/relative-
               <tbody>
                 @for (entry of history(); track entry.settingHistoryId) {
                   <tr>
-                    <td class="mono">{{ entry.version }}</td>
+                    <td class="num">{{ entry.version }}</td>
                     <td class="mono text-3">{{ entry.oldValue ?? '—' }}</td>
                     <td class="mono">{{ entry.newValue }}</td>
                     <td class="text-2">{{ entry.changedBy ?? 'system' }}</td>
@@ -335,10 +335,8 @@ import { AbsoluteTimePipe, RelativeTimePipe } from '../../shared/utils/relative-
 
       .fact-label {
         display: block;
-        font-size: 0.7rem;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.04em;
+        font-size: var(--fs-meta);
+        font-weight: var(--fw-medium);
         color: var(--text-2);
       }
 
