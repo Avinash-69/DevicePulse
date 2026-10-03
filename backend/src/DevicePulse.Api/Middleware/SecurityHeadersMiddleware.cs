@@ -1,4 +1,4 @@
-namespace DevicePulse.Api.Middleware;
+﻿namespace DevicePulse.Api.Middleware;
 
 /// <summary>
 /// Standard security response headers (Appendix D.3).
@@ -8,11 +8,40 @@ namespace DevicePulse.Api.Middleware;
 /// something executable, and stop API responses from being cached where they should not be.
 /// HSTS is handled separately by UseHsts, which already knows about the development exemption.
 /// </summary>
+/// <remarks>
+/// The Swagger UI is the one exception, and it has to be made explicitly. It is real HTML that
+/// loads its own stylesheet and two large scripts, so the API's <c>default-src 'none'</c> policy
+/// blocks every one of them and the page renders blank &#8212; served correctly with a 200, and
+/// empty in the browser. The symptom is invisible to anything that is not a browser, because a
+/// Content-Security-Policy is enforced by the client and ignored by tools like curl.
+/// </remarks>
 public sealed class SecurityHeadersMiddleware
 {
-    private readonly RequestDelegate _next;
+    /// <summary>
+    /// What the Swagger UI needs in order to render: its own assets, plus inline styles and
+    /// scripts, which swagger-ui injects as it builds the page. Scoped to Development only, so
+    /// the API itself is never served under a policy this permissive.
+    /// </summary>
+    private const string SwaggerContentSecurityPolicy =
+        "default-src 'self'; " +
+        "script-src 'self' 'unsafe-inline'; " +
+        "style-src 'self' 'unsafe-inline'; " +
+        "img-src 'self' data:; " +
+        "font-src 'self' data:; " +
+        "connect-src 'self'; " +
+        "frame-ancestors 'none'";
 
-    public SecurityHeadersMiddleware(RequestDelegate next) => _next = next;
+    /// <summary>Denies everything, which is correct for a response that is only ever JSON.</summary>
+    private const string ApiContentSecurityPolicy = "default-src 'none'; frame-ancestors 'none'";
+
+    private readonly RequestDelegate _next;
+    private readonly bool _isDevelopment;
+
+    public SecurityHeadersMiddleware(RequestDelegate next, IWebHostEnvironment environment)
+    {
+        _next = next;
+        _isDevelopment = environment.IsDevelopment();
+    }
 
     public Task InvokeAsync(HttpContext context)
     {
@@ -29,13 +58,18 @@ public sealed class SecurityHeadersMiddleware
             // Keeps the API origin out of Referer headers sent to third parties.
             headers["Referrer-Policy"] = "no-referrer";
 
-            // A restrictive CSP is cheap here precisely because the API returns no markup:
-            // nothing legitimate needs to load, so everything can be denied.
-            headers["Content-Security-Policy"] = "default-src 'none'; frame-ancestors 'none'";
+            // Swagger serves its own HTML and assets, so it is exempted both from the deny-all
+            // CSP and from the no-store rule; API responses themselves must not be written to a
+            // shared cache. The exemption is Development-only and path-scoped, because Swagger
+            // is only mapped there.
+            var isSwagger = _isDevelopment && context.Request.Path.StartsWithSegments("/swagger");
 
-            // Swagger serves its own HTML and assets, so it is exempted from the no-store rule
-            // below; API responses themselves must not be written to a shared cache.
-            if (!context.Request.Path.StartsWithSegments("/swagger"))
+            // A restrictive CSP is cheap on the API itself precisely because it returns no
+            // markup: nothing legitimate needs to load, so everything can be denied.
+            headers["Content-Security-Policy"] =
+                isSwagger ? SwaggerContentSecurityPolicy : ApiContentSecurityPolicy;
+
+            if (!isSwagger)
                 headers["Cache-Control"] = "no-store, no-cache, must-revalidate";
 
             return Task.CompletedTask;
