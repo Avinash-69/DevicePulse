@@ -1,4 +1,4 @@
-using System.Text;
+﻿using System.Text;
 using System.Threading.RateLimiting;
 using DevicePulse.Api.Authorization;
 using DevicePulse.Api.BackgroundServices;
@@ -6,6 +6,7 @@ using DevicePulse.Api.Data;
 using DevicePulse.Api.Data.Seed;
 using DevicePulse.Api.Middleware;
 using DevicePulse.Api.Options;
+using DevicePulse.Api.Realtime;
 using DevicePulse.Api.Services;
 using DevicePulse.Api.Services.Alerting;
 using DevicePulse.Api.Services.Configuration;
@@ -64,8 +65,19 @@ if (string.IsNullOrWhiteSpace(connectionString))
         "through the environment or a secret store. See backend/README.md.");
 }
 
-builder.Services.AddDbContext<DevicePulseDbContext>(options =>
+// Singleton, so it can be handed to every context instance below; its per-save state is keyed to
+// the context it belongs to.
+builder.Services.AddSingleton<LiveEventDispatcher>();
+builder.Services.AddSingleton<ILivePublisher>(services => services.GetRequiredService<LiveEventDispatcher>());
+builder.Services.AddHostedService(services => services.GetRequiredService<LiveEventDispatcher>());
+builder.Services.AddSingleton<LiveChangeInterceptor>();
+
+builder.Services.AddDbContext<DevicePulseDbContext>((services, options) =>
 {
+    // Pushes committed alert and device-status changes to live dashboards. On SaveChanges rather
+    // than in each service, so no write path can forget to announce itself.
+    options.AddInterceptors(services.GetRequiredService<LiveChangeInterceptor>());
+
     options.UseSqlServer(
         connectionString,
         sql =>
@@ -147,6 +159,19 @@ builder.Services
         // permission" without parsing the body.
         options.Events = new JwtBearerEvents
         {
+            // A browser cannot set an Authorization header on a WebSocket or EventSource request,
+            // so the SignalR client sends the token as access_token in the query string. It is
+            // accepted there for the hub path only; every other endpoint still requires the header.
+            OnMessageReceived = context =>
+            {
+                var token = context.Request.Query["access_token"];
+
+                if (!string.IsNullOrEmpty(token) && context.HttpContext.Request.Path.StartsWithSegments(LiveHub.Path))
+                    context.Token = token;
+
+                return Task.CompletedTask;
+            },
+
             OnAuthenticationFailed = context =>
             {
                 if (context.Exception is SecurityTokenExpiredException)
@@ -305,6 +330,12 @@ builder.Services.AddControllers()
         options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
     });
 
+// Same enum-as-name convention as the REST API, so a pushed alert reads "High" exactly as a
+// fetched one does and the client needs one set of types.
+builder.Services.AddSignalR()
+    .AddJsonProtocol(options =>
+        options.PayloadSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter()));
+
 builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddSwaggerGen(options =>
@@ -384,6 +415,14 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+app.MapHub<LiveHub>(LiveHub.Path, options =>
+{
+    // Without this a socket outlives the access token that opened it, and with it the permission
+    // set that decided which groups it joined. Closing it makes the client reconnect with a fresh
+    // token, so the push channel has the same bounded staleness as the REST API.
+    options.CloseOnAuthenticationExpiration = true;
+});
 
 // Liveness: is the process up and able to answer? Deliberately has no database check — if SQL
 // Server is down, restarting the API will not help, and a failing liveness probe would put the

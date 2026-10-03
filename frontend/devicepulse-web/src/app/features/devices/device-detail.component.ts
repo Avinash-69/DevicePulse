@@ -1,11 +1,24 @@
-import { Component, OnInit, computed, inject, input, numberAttribute, signal, ChangeDetectionStrategy } from '@angular/core';
+import {
+  Component,
+  DestroyRef,
+  OnInit,
+  computed,
+  inject,
+  input,
+  numberAttribute,
+  signal,
+  ChangeDetectionStrategy,
+} from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { auditTime, filter, merge } from 'rxjs';
 
 import { ApiService } from '../../core/services/api.service';
 import { AuthService } from '../../core/auth/auth.service';
 import { Permissions } from '../../core/auth/permissions';
 import { NotificationService } from '../../core/services/notification.service';
+import { RealtimeService } from '../../core/services/realtime.service';
 import { fieldErrorsFrom } from '../../core/interceptors/error.interceptor';
 import {
   Alert,
@@ -447,6 +460,8 @@ export class DeviceDetailComponent implements OnInit {
   private readonly notifications = inject(NotificationService);
   private readonly router = inject(Router);
   private readonly fb = inject(FormBuilder);
+  private readonly live = inject(RealtimeService);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly perm = Permissions;
 
@@ -490,6 +505,20 @@ export class DeviceDetailComponent implements OnInit {
     this.loadTelemetry();
     this.loadAlerts();
     this.loadReferenceData();
+    this.followLiveChanges();
+  }
+
+  /** Re-reads the device and its alerts when a push concerns this device, or after a reconnect. */
+  private followLiveChanges(): void {
+    const forThisDevice = <T extends { deviceId: number }>(event: T) => event.deviceId === this.id();
+
+    merge(this.live.deviceStatusChanged$.pipe(filter(forThisDevice)), this.live.resynced$)
+      .pipe(auditTime(1000), takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.loadDevice());
+
+    merge(this.live.alertChanged$.pipe(filter(forThisDevice)), this.live.resynced$)
+      .pipe(auditTime(1000), takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.loadAlerts());
   }
 
   private loadDevice(): void {

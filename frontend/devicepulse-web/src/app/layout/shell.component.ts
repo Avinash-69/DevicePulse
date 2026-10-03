@@ -1,4 +1,5 @@
-import { Component, OnDestroy, OnInit, computed, inject, signal, ChangeDetectionStrategy } from '@angular/core';
+import { Component, DestroyRef, OnDestroy, OnInit, computed, inject, signal, ChangeDetectionStrategy } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 
@@ -6,6 +7,7 @@ import { AuthService } from '../core/auth/auth.service';
 import { Permissions } from '../core/auth/permissions';
 import { ApiService } from '../core/services/api.service';
 import { NotificationService } from '../core/services/notification.service';
+import { RealtimeService } from '../core/services/realtime.service';
 import { ThemeService } from '../core/services/theme.service';
 import { ToastsComponent } from './toasts.component';
 
@@ -110,6 +112,13 @@ interface NavItem {
               autocomplete="off"
             />
           </form>
+
+          @if (canGoLive()) {
+            <span class="live-state" [class.on]="live.isLive()" [attr.title]="liveTitle()" role="status">
+              <span class="dot"></span>
+              <span class="live-word">{{ live.isLive() ? 'Live' : 'Reconnecting' }}</span>
+            </span>
+          }
 
           @if (canSeeAlerts()) {
             <a
@@ -352,7 +361,21 @@ interface NavItem {
         border-color: var(--accent);
       }
 
-      /* ---- alert pulse ---- */
+      /* ---- live state and alert pulse ---- */
+
+      /* Quiet when live, since that is the normal state; it only draws the eye when it is not. */
+      .live-state {
+        display: inline-flex;
+        gap: var(--sp-2);
+        align-items: center;
+        font-size: var(--fs-meta);
+        color: var(--warn);
+        white-space: nowrap;
+      }
+
+      .live-state .dot { background: var(--warn); }
+      .live-state.on { color: var(--text-3); }
+      .live-state.on .dot { background: var(--ok); }
 
       /*
        * Always-visible count of open alerts. Quiet when there is nothing to do, and coloured
@@ -496,6 +519,7 @@ interface NavItem {
       @media (max-width: 600px) {
         .who { display: none; }
         .alert-word { display: none; }
+        .live-word { display: none; }
         .topbar { padding: 0 var(--sp-2); }
         .account-btn { max-width: none; }
       }
@@ -507,10 +531,12 @@ export class ShellComponent implements OnInit, OnDestroy {
   private readonly api = inject(ApiService);
   private readonly router = inject(Router);
   private readonly notifications = inject(NotificationService);
+  private readonly destroyRef = inject(DestroyRef);
 
   private readonly sanitizer = inject(DomSanitizer);
 
   readonly theme = inject(ThemeService);
+  readonly live = inject(RealtimeService);
 
   readonly user = this.auth.user;
   readonly sidebarOpen = signal(false);
@@ -520,6 +546,17 @@ export class ShellComponent implements OnInit, OnDestroy {
   private timer?: ReturnType<typeof setInterval>;
 
   readonly canSeeAlerts = computed(() => this.auth.has(Permissions.alertView));
+
+  /** Only users who can see something that is pushed get a connection; the API agrees (LiveHub). */
+  readonly canGoLive = computed(() =>
+    this.auth.hasAny(Permissions.alertView, Permissions.deviceView, Permissions.dashboardView),
+  );
+
+  readonly liveTitle = computed(() =>
+    this.live.isLive()
+      ? 'Receiving live updates'
+      : 'Live updates are reconnecting; screens refresh on a timer meanwhile',
+  );
 
   readonly initials = computed(() => {
     const name = this.user()?.name ?? '';
@@ -626,15 +663,29 @@ export class ShellComponent implements OnInit, OnDestroy {
       if (next !== this.url()) this.url.set(next);
     });
 
+    if (this.canGoLive()) {
+      this.live.connect();
+    }
+
     if (this.canSeeAlerts()) {
       this.refreshAlertCount();
-      // A minute: slow enough to be free, fast enough that the chrome is not lying for long.
-      this.timer = setInterval(() => this.refreshAlertCount(), 60_000);
+
+      this.live
+        .refreshes({ alerts: true })
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe(() => this.refreshAlertCount());
+
+      // The fallback while the live connection is down. A minute: slow enough to be free, fast
+      // enough that the chrome is not lying for long.
+      this.timer = setInterval(() => {
+        if (!this.live.isLive()) this.refreshAlertCount();
+      }, 60_000);
     }
   }
 
   ngOnDestroy(): void {
     if (this.timer) clearInterval(this.timer);
+    this.live.disconnect();
   }
 
   /** One row, read only for its total: the cheapest way to ask "how many are open". */
@@ -671,6 +722,7 @@ export class ShellComponent implements OnInit, OnDestroy {
   signOut(): void {
     this.menuOpen.set(false);
     this.notifications.dismissAll();
+    this.live.disconnect();
     this.auth.logout();
   }
 }
