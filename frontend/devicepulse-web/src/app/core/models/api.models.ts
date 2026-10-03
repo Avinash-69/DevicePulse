@@ -488,3 +488,29 @@ export interface DeviceHealthRow {
   openAlertCount: number;
   highestOpenSeverity: AlertSeverity | null;
 }
+
+// ---------------------------------------------------------------- live push
+
+export type AlertChange = 'Raised' | 'Acknowledged' | 'Resolved';
+
+/** Pushed when an alert is raised, acknowledged or resolved. */
+export interface AlertChangedEvent {
+  alertId: number;
+  deviceId: number;
+  change: AlertChange;
+  severity: AlertSeverity;
+  status: AlertStatus;
+  message: string;
+  occurredAt: string;
+}
+
+/** Pushed when a device's connectivity or lifecycle status changes, or a device is registered. */
+export interface DeviceStatusChangedEvent {
+  deviceId: number;
+  deviceCode: string;
+  deviceName: string;
+  connectivityStatus: ConnectivityStatus;
+  lifecycleStatus: LifecycleStatus;
+  lastSeenAt: string | null;
+  occurredAt: string;
+}

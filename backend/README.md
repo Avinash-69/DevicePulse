@@ -13,7 +13,7 @@ file covers running, configuring and extending the backend.
 |---|---|
 | `src/DevicePulse.Api` | The API. A modular monolith with folder-based layering. |
 | `src/DevicePulse.Simulator` | Console app that drives a virtual device fleet through the real endpoints. |
-| `tests/DevicePulse.Tests` | Unit and integration tests (137). |
+| `tests/DevicePulse.Tests` | Unit and integration tests (155). |
 
 ---
 
@@ -104,7 +104,7 @@ dotnet ef migrations bundle --project src/DevicePulse.Api --self-contained -o mi
 
 ```bash
 cd tests/DevicePulse.Tests
-dotnet run                      # all 137
+dotnet run                      # all 155
 dotnet run -- -method "DevicePulse.Tests.Unit.AlertRuleEvaluatorTests.*"
 ```
 

@@ -1,10 +1,12 @@
-import { Component, OnInit, inject, signal, ChangeDetectionStrategy } from '@angular/core';
+import { Component, DestroyRef, OnInit, inject, signal, ChangeDetectionStrategy } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 
 import { ApiService } from '../../core/services/api.service';
 import { Permissions } from '../../core/auth/permissions';
 import { NotificationService } from '../../core/services/notification.service';
+import { RealtimeService } from '../../core/services/realtime.service';
 import { Alert, AlertQuery, AlertSeverity, AlertStatus, PagedResult } from '../../core/models/api.models';
 import {
   AlertStatusBadgeComponent,
@@ -229,6 +231,8 @@ export class AlertListComponent implements OnInit {
   private readonly api = inject(ApiService);
   private readonly notifications = inject(NotificationService);
   private readonly fb = inject(FormBuilder);
+  private readonly live = inject(RealtimeService);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly perm = Permissions;
 
@@ -268,10 +272,19 @@ export class AlertListComponent implements OnInit {
     }
 
     this.load();
+
+    // A raised or resolved alert re-fetches the current page in place, keeping the filters and
+    // without the loading skeleton, so the list does not flash while someone is reading it.
+    this.live
+      .refreshes({ alerts: true })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.load(true));
   }
 
-  load(): void {
-    this.loading.set(true);
+  load(quiet = false): void {
+    if (!quiet) {
+      this.loading.set(true);
+    }
 
     this.api.getAlerts(this.query()).subscribe({
       next: (page) => {

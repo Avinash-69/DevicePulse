@@ -1,7 +1,9 @@
-import { Component, OnDestroy, OnInit, computed, inject, signal, ChangeDetectionStrategy } from '@angular/core';
+import { Component, DestroyRef, OnDestroy, OnInit, computed, inject, signal, ChangeDetectionStrategy } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 
 import { ApiService } from '../../core/services/api.service';
+import { RealtimeService } from '../../core/services/realtime.service';
 import { DashboardSummary, DeviceHealthRow } from '../../core/models/api.models';
 import { environment } from '../../../environments/environment';
 import {
@@ -28,10 +30,13 @@ import { RelativeTimePipe } from '../../shared/utils/relative-time.pipe';
  * One request fills the whole page — the API aggregates everything server-side rather than
  * having the SPA fire six calls and count rows itself.
  *
- * It polls rather than pushing. That is the ordering the master reference asks for (§31): get
- * the data right over plain HTTP first, and introduce SignalR when there is a reason beyond
- * novelty. The interval is a few seconds longer than a device's reporting interval, so the
- * numbers move without hammering the API.
+ * It updates when the API pushes a change (§31): an alert raised, acknowledged or resolved, or a
+ * device changing state. The push only says that something changed; the page re-fetches the one
+ * summary, so the counting stays on the API and a missed push can make the page late but never
+ * wrong. Bursts are coalesced, so a bulk ingest that trips forty rules costs one request.
+ *
+ * Polling remains as the fallback for whenever the live connection is down, at the same interval
+ * it always had.
  *
  * The layout is ordered by what an operator does, not by what is easiest to arrange. Opening
  * this page asks one question — is anything wrong, and what do I do about it — so the screen
@@ -380,6 +385,8 @@ import { RelativeTimePipe } from '../../shared/utils/relative-time.pipe';
 })
 export class DashboardComponent implements OnInit, OnDestroy {
   private readonly api = inject(ApiService);
+  private readonly live = inject(RealtimeService);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly summary = signal<DashboardSummary | null>(null);
   readonly loading = signal(true);
@@ -390,10 +397,15 @@ export class DashboardComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.load();
 
+    this.live
+      .refreshes({ alerts: true, devices: true })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.load());
+
     this.timer = setInterval(() => {
-      // Skipped while the tab is hidden: polling a dashboard nobody is looking at is pure load
-      // on the API and the database for no benefit.
-      if (document.visibilityState === 'visible') {
+      // Skipped while live, since pushes already keep the page current, and while the tab is
+      // hidden: polling a dashboard nobody is looking at is pure load for no benefit.
+      if (!this.live.isLive() && document.visibilityState === 'visible') {
         this.load();
       }
     }, environment.dashboardRefreshMs);

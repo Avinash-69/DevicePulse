@@ -20,11 +20,12 @@ ASP.NET Core 10 · Angular 22 · SQL Server · EF Core
 | **Configuration** | Typed settings with bounds and units, server-side validation, version history with reasons, applied without restart |
 | **Administration** | User and role management, permission editor, device types and locations, read-only audit trail |
 | **Dashboard** | Fleet counters, temperature trend with min/max band, severity breakdown, distribution, "needs attention" list |
+| **Live updates** | SignalR push of alert and device-status changes; dashboard, alert list, device pages and the top bar refresh without a reload, falling back to polling while disconnected |
 | **Background work** | Offline detection sweeper, data retention worker |
 | **Simulator** | Separate console app driving a configurable virtual fleet, with measured throughput and latency output |
-| **Engineering** | 137 backend tests, 14 frontend tests, ProblemDetails error contract, correlation IDs, rate limiting, health endpoints, Docker, CI |
+| **Engineering** | 155 backend tests, 27 frontend tests, ProblemDetails error contract, correlation IDs, rate limiting, health endpoints, Docker, CI |
 
-Not yet built: SignalR real-time push, Redis, a message queue, Keycloak, multi-tenancy, and
+Not yet built: Redis, a message queue, Keycloak, multi-tenancy, and
 notification channels. Those are the project's planned later phases, and nothing in the UI
 pretends they exist.
 
@@ -196,6 +197,17 @@ seeder refuses to invent a Super Admin password: a hard-coded fallback would shi
 administrator credential, and a generated one nobody records would leave the deployment with an
 unreachable admin account.
 
+**Live updates say what changed, not what the numbers are.** The API pushes a small event when
+an alert is raised, acknowledged or resolved, or a device changes connectivity or lifecycle
+status, and a screen that shows aggregates re-fetches them. Patching counters from a stream of
+deltas would duplicate the counting logic in the client and drift after a single missed message;
+re-fetching means a lost push makes a screen late, never wrong. Events come from a SaveChanges
+interceptor rather than from each service, so no write path can forget to announce itself, and
+only transitions are sent — a reading that merely moves `LastSeenAt` pushes nothing, or a 500-device
+fleet would send 500 messages a second to every open dashboard. Delivery is queued off the request
+path, so a slow browser cannot add latency to ingestion. Each connection joins only the groups its
+token's permissions allow, and the socket is closed when that token expires.
+
 **No Start button on the simulator page.** The simulator is a separate console application and
 the API has no endpoint that launches a process, so buttons there would be decoration. The page
 says so and offers what is real: a command builder, live ingestion state, and single-reading
@@ -206,11 +218,11 @@ submission through the actual endpoint.
 ## Testing
 
 ```bash
-# Backend — 137 tests. Integration tests need a reachable SQL Server and
+# Backend — 155 tests. Integration tests need a reachable SQL Server and
 # skip cleanly (rather than failing) if there is none.
 cd backend/tests/DevicePulse.Tests && dotnet run
 
-# Frontend — 14 tests, headless Chrome.
+# Frontend — 27 tests, Vitest in jsdom.
 cd frontend/devicepulse-web && npm test -- --watch=false
 ```
 
@@ -241,6 +253,7 @@ Swagger UI is at `/swagger` in Development. All routes are versioned under `/api
 | Audit | `GET /audit` (read-only) |
 | Dashboard | `GET /dashboard/summary` |
 | Health | `GET /health/live`, `/health/ready` |
+| Live | SignalR hub at `/hubs/live`, server-to-client only: `alertChanged`, `deviceStatusChanged` |
 
 Every error is RFC 7807 `ProblemDetails` with a `traceId` that is also returned as the
 `X-Correlation-Id` header, so a failure can be traced end to end from a single quoted value.
