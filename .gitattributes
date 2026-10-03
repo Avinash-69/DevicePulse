@@ -14,6 +14,13 @@ Dockerfile  text eol=lf
 *.slnx      text eol=crlf
 *.sln       text eol=crlf
 
+# Always CRLF: .editorconfig sets end_of_line = crlf for C#, and `dotnet format
+# --verify-no-changes` enforces it. Checking these out native instead would hand a Linux runner
+# LF files that the formatter then wants to rewrite, so CI fails on every .cs file while the
+# same command passes on Windows. Pinning the checkout keeps the two configs telling one story.
+*.cs        text eol=crlf
+*.csx       text eol=crlf
+
 # Binary — never diffed or line-ending converted.
 *.png       binary
 *.jpg       binary
