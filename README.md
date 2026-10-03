@@ -43,7 +43,7 @@ Open <http://localhost:8080>. The API is proxied under the same origin at `/api/
 
 ### Option 2 — Locally
 
-Requires the .NET 10 SDK, Node 22.22+ / 24.15+ / 26+, and a reachable SQL Server.
+Requires the .NET 10 SDK, Node 22.22.3+ / 24.15+ / 26+, and a reachable SQL Server.
 
 ```bash
 # 1. Development secrets (connection string, signing key, seed password).
