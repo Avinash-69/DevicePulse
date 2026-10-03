@@ -15,76 +15,75 @@ import { ToastsComponent } from '../../layout/toasts.component';
     <div class="login-page">
       <button
         type="button"
-        class="btn btn-ghost btn-sm theme-toggle"
+        class="btn btn-ghost btn-icon theme-toggle"
+        [attr.aria-label]="'Switch to ' + (theme.isDark() ? 'light' : 'dark') + ' theme'"
         (click)="theme.toggle()"
       >
-        {{ theme.isDark() ? 'Light' : 'Dark' }}
+        @if (theme.isDark()) {
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="4" />
+            <path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5 19 19M19 5l-1.5 1.5M6.5 17.5 5 19" stroke-linecap="round" />
+          </svg>
+        } @else {
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a7 7 0 1 0 10.5 10.5z" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        }
       </button>
 
-      <div class="panel">
-        <div class="brand">
-          <span class="mark" aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-              <path d="M2 12h4l2.5-7 3.5 14 3-9 2 4h5" stroke-linecap="round" stroke-linejoin="round" />
-            </svg>
-          </span>
-          <div>
-            <h1>DevicePulse</h1>
-            <p class="text-2 small">IoT device monitoring and management</p>
-          </div>
-        </div>
+      <main class="column">
+        <p class="brand">
+          <svg class="mark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
+            <path d="M2 12h4l2.5-7 3.5 14 3-9 2 4h5" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+          DevicePulse
+        </p>
 
-        <form class="panel" [formGroup]="form" (ngSubmit)="submit()">
-          <div class="panel-body stack">
-            <h2>Sign in</h2>
+        <h1>Sign in to the fleet console</h1>
 
-            @if (errorMessage()) {
-              <div class="banner" role="alert">{{ errorMessage() }}</div>
+        <form class="stack" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+          @if (errorMessage()) {
+            <div class="banner" role="alert">{{ errorMessage() }}</div>
+          }
+
+          <div class="field">
+            <label for="email">Email</label>
+            <input
+              id="email"
+              type="email"
+              formControlName="email"
+              autocomplete="username"
+              [class.invalid]="showError('email')"
+            />
+            @if (showError('email')) {
+              <span class="field-error">Enter a valid email address.</span>
             }
-
-            <div class="field">
-              <label for="email">Email address</label>
-              <input
-                id="email"
-                type="email"
-                formControlName="email"
-                autocomplete="username"
-                [class.invalid]="showError('email')"
-                placeholder="you@example.com"
-              />
-              @if (showError('email')) {
-                <span class="field-error">Enter a valid email address.</span>
-              }
-            </div>
-
-            <div class="field">
-              <label for="password">Password</label>
-              <input
-                id="password"
-                type="password"
-                formControlName="password"
-                autocomplete="current-password"
-                [class.invalid]="showError('password')"
-              />
-              @if (showError('password')) {
-                <span class="field-error">Enter your password.</span>
-              }
-            </div>
-
-            <button type="submit" class="btn btn-primary" [disabled]="submitting()">
-              @if (submitting()) {
-                <span class="spinner"></span>
-              }
-              Sign in
-            </button>
           </div>
+
+          <div class="field">
+            <label for="password">Password</label>
+            <input
+              id="password"
+              type="password"
+              formControlName="password"
+              autocomplete="current-password"
+              [class.invalid]="showError('password')"
+            />
+            @if (showError('password')) {
+              <span class="field-error">Enter your password.</span>
+            }
+          </div>
+
+          <button type="submit" class="btn btn-primary submit" [disabled]="submitting()">
+            @if (submitting()) {
+              <span class="spinner"></span>
+            }
+            Sign in
+          </button>
         </form>
 
-        <p class="footnote text-3 small">
-          Access is granted by an administrator. Permissions are enforced by the API on every
-          request, not by this page.
-        </p>
-      </div>
+        <p class="footnote text-2 small">No account? Ask an administrator to create one for you.</p>
+      </main>
     </div>
 
     <dp-toasts />
@@ -92,65 +91,68 @@ import { ToastsComponent } from '../../layout/toasts.component';
   changeDetection: ChangeDetectionStrategy.Eager,
   styles: [
     `
+      /* No card, no gradient, no hero. A sign-in page has one job, and the form sits on the
+         page the way it would on a piece of equipment's own login screen. */
       .login-page {
         position: relative;
         display: grid;
-        place-items: center;
+        align-items: center;
         min-height: 100vh;
         padding: var(--sp-7) var(--sp-4);
-        background:
-          radial-gradient(1100px 520px at 50% -10%, var(--accent-wash), transparent 70%),
-          var(--canvas);
+        background: var(--canvas);
       }
 
       .theme-toggle {
         position: absolute;
-        top: 1rem;
-        right: 1rem;
+        top: var(--sp-3);
+        right: var(--sp-3);
       }
 
-      .panel {
+      .column {
         width: 100%;
-        max-width: 380px;
+        max-width: 340px;
+        margin: 0 auto;
       }
 
       .brand {
         display: flex;
-        gap: var(--sp-3);
+        gap: var(--sp-2);
         align-items: center;
-        margin-bottom: var(--sp-5);
+        margin: 0 0 var(--sp-8);
+        font-weight: var(--fw-semibold);
       }
 
       .mark {
-        display: grid;
-        place-items: center;
-        width: 38px;
-        height: 38px;
-        color: var(--accent-text);
-        background: var(--accent);
-        border-radius: 9px;
-        flex: 0 0 auto;
+        width: 20px;
+        height: 20px;
+        color: var(--accent);
       }
 
-      .mark svg { width: 23px; height: 23px; }
+      h1 {
+        margin-bottom: var(--sp-6);
+        font-size: var(--fs-xl);
+        font-weight: var(--fw-medium);
+      }
 
-      .brand h1 { font-size: 1.2rem; }
-      .brand p { margin: 0; }
+      .submit {
+        height: 36px;
+        margin-top: var(--sp-2);
+      }
 
-      form { box-shadow: var(--shadow-pop); }
+      input { height: 36px; }
 
       .banner {
         padding: var(--sp-2) var(--sp-3);
-        font-size: 0.82rem;
+        font-size: var(--fs-sm);
         color: var(--danger);
         background: var(--danger-wash);
-        border-radius: var(--r-md);
+        border-left: 3px solid var(--danger);
       }
 
       .footnote {
-        margin: var(--sp-4) 0 0;
-        text-align: center;
-        line-height: 1.5;
+        margin: var(--sp-6) 0 0;
+        padding-top: var(--sp-4);
+        border-top: 1px solid var(--line);
       }
     `,
   ],

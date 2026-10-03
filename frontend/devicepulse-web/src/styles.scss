@@ -22,6 +22,18 @@
  * widths. The scales below exist so that cannot happen again.
  */
 
+/* ---------------------------------------------------------------- type faces */
+
+/* IBM Plex, bundled with the app rather than fetched from a font CDN: it works offline and on a
+   locked-down plant network, and leaks nothing about who is using the console. Latin subsets and
+   only the weights the scale below uses. Plex was drawn for engineering documentation, and its
+   figures are tabular by default, which suits a screen that is mostly numbers in columns. */
+@import '@fontsource/ibm-plex-sans/latin-400.css';
+@import '@fontsource/ibm-plex-sans/latin-500.css';
+@import '@fontsource/ibm-plex-sans/latin-600.css';
+@import '@fontsource/ibm-plex-mono/latin-400.css';
+@import '@fontsource/ibm-plex-mono/latin-500.css';
+
 /* ---------------------------------------------------------------- scales */
 
 :root {
@@ -65,17 +77,17 @@
   /* Radii stop at 8px. The old 12px on every card was the single biggest contributor to the
      generic look. 6px is the default: present, not decorative. */
   --r-xs: 2px;
-  --r-sm: 4px;
-  --r-md: 6px;
-  --r-lg: 8px;
+  --r-sm: 3px;
+  --r-md: 4px;
+  --r-lg: 6px;
   --r-pill: 999px;
 
   /* Shadows only for genuinely floating surfaces. Static sections use a border. */
   --shadow-pop: 0 4px 12px rgb(16 20 26 / 10%), 0 1px 3px rgb(16 20 26 / 8%);
   --shadow-modal: 0 24px 48px -12px rgb(16 20 26 / 28%);
 
-  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  --font-sans: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
 
   /* Chrome dimensions. */
   --sidebar-width: 212px;
@@ -100,29 +112,30 @@ $bp-sm: 600px;
 :root {
   color-scheme: light;
 
-  /* Surfaces. A near-neutral grey with the faintest cool cast -- enough to feel like an
-     instrument housing, far enough from the blue-grey that reads as stock SaaS. */
-  --canvas: #f7f8f9;
+  /* Surfaces. Warm paper greys rather than the cool blue-grey every component kit ships with:
+     the console should read like a printed instrument log, not a template. */
+  --canvas: #f4f3ef;
   --panel: #ffffff;
-  --panel-2: #f3f5f7;
-  --panel-3: #e9ecef;
-  --panel-inverse: #15181c;
+  --panel-2: #f1f0eb;
+  --panel-3: #e6e4de;
+  --panel-inverse: #1a1a19;
 
-  --line: #e3e7ea;        /* hairline between rows and sections */
-  --line-strong: #cbd2d8; /* control borders, where the edge must be findable */
+  --line: #e2e0d9;        /* hairline between rows and sections */
+  --line-strong: #c9c6bd; /* control borders, where the edge must be findable */
 
-  --text: #15181c;
-  --text-2: #5a646e;      /* metadata, secondary columns */
-  --text-3: #8b949e;      /* timestamps, placeholders, disabled */
-  --text-inverse: #f7f8f9;
+  --text: #1a1a19;
+  --text-2: #5c5a54;      /* metadata, secondary columns */
+  --text-3: #8a877f;      /* timestamps, placeholders, disabled */
+  --text-inverse: #f4f3ef;
 
-  /* One accent, a deep instrument teal. Restrained on purpose: it marks the active nav item,
-     the focus ring, and the primary action. Nothing else. */
-  --accent: #0b6e8a;
-  --accent-hover: #095c73;
-  --accent-active: #074d61;
-  --accent-wash: #e6f1f5;
-  --accent-line: #a8ccd9;
+  /* One accent, cobalt ink. It marks the active nav item, links, the focus ring and the primary
+     action, and nothing else; it is far enough from every status colour that it never reads as
+     one. */
+  --accent: #2447c4;
+  --accent-hover: #1d3aa6;
+  --accent-active: #172f88;
+  --accent-wash: #e9edfb;
+  --accent-line: #b7c4f0;
   --accent-text: #ffffff;
 
   /* Status. Each has a text tone, a wash for row tinting, and a line for borders. */
@@ -158,26 +171,26 @@ $bp-sm: 600px;
 :root[data-theme='dark'] {
   color-scheme: dark;
 
-  --canvas: #0d1013;
-  --panel: #14181d;
-  --panel-2: #1a1f25;
-  --panel-3: #232a31;
-  --panel-inverse: #f7f8f9;
+  --canvas: #121211;
+  --panel: #191918;
+  --panel-2: #20201e;
+  --panel-3: #2a2a27;
+  --panel-inverse: #f4f3ef;
 
-  --line: #252c33;
-  --line-strong: #39424b;
+  --line: #2b2b28;
+  --line-strong: #403f3b;
 
-  --text: #e6eaee;
-  --text-2: #9aa4ae;
-  --text-3: #6c7681;
-  --text-inverse: #15181c;
+  --text: #ecebe6;
+  --text-2: #a4a29b;
+  --text-3: #75736c;
+  --text-inverse: #1a1a19;
 
-  --accent: #2e9fbe;
-  --accent-hover: #46b3d0;
-  --accent-active: #58c0db;
-  --accent-wash: #0e2d38;
-  --accent-line: #1d5c73;
-  --accent-text: #04171d;
+  --accent: #8aa2ff;
+  --accent-hover: #a2b5ff;
+  --accent-active: #b6c5ff;
+  --accent-wash: #1c2342;
+  --accent-line: #34427a;
+  --accent-text: #0b1030;
 
   --ok: #4ec97d;
   --ok-wash: #0f2719;
@@ -293,13 +306,13 @@ table.data td.num,
   font-feature-settings: 'tnum' 1;
 }
 
-/* Column labels, key names, timestamps: small, spaced, quiet. */
+/* Column labels, key names, timestamps. Sentence case at normal tracking: the small spaced
+   capitals this used to be are the house style of every generated dashboard, and they are
+   slower to read. */
 .label {
-  font-size: var(--fs-micro);
-  font-weight: var(--fw-semibold);
-  letter-spacing: var(--tr-wide);
-  text-transform: uppercase;
-  color: var(--text-3);
+  font-size: var(--fs-meta);
+  font-weight: var(--fw-medium);
+  color: var(--text-2);
 }
 
 .text-2 { color: var(--text-2); }
@@ -308,6 +321,15 @@ table.data td.num,
 .nowrap { white-space: nowrap; }
 .right { text-align: right; }
 .center { text-align: center; }
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
 .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
 
 /* A visible focus ring everywhere. Removing it would make the app unusable by keyboard, which
@@ -554,7 +576,7 @@ tr:hover .btn-row,
 
 /* ---------------------------------------------------------------- forms */
 
-.field { display: grid; gap: var(--sp-1); min-width: 0; }
+.field { display: grid; gap: var(--sp-1); align-content: start; min-width: 0; }
 
 .field > label {
   font-size: var(--fs-meta);
@@ -587,11 +609,9 @@ tr:hover .btn-row,
   padding: 0 0 var(--sp-2);
   margin-bottom: var(--sp-1);
   width: 100%;
-  font-size: var(--fs-micro);
-  font-weight: var(--fw-semibold);
-  letter-spacing: var(--tr-wide);
-  text-transform: uppercase;
-  color: var(--text-3);
+  font-size: var(--fs-meta);
+  font-weight: var(--fw-medium);
+  color: var(--text-2);
   border-bottom: 1px solid var(--line);
 }
 
@@ -752,13 +772,11 @@ table.data th {
   z-index: 1;
   padding: var(--sp-2) var(--sp-3);
   text-align: left;
-  font-size: var(--fs-micro);
-  font-weight: var(--fw-semibold);
-  text-transform: uppercase;
-  letter-spacing: var(--tr-wide);
-  color: var(--text-3);
-  background: var(--panel-2);
-  border-bottom: 1px solid var(--line);
+  font-size: var(--fs-meta);
+  font-weight: var(--fw-medium);
+  color: var(--text-2);
+  background: var(--panel);
+  border-bottom: 1px solid var(--line-strong);
   white-space: nowrap;
   user-select: none;
 }
@@ -811,14 +829,11 @@ table.data tbody tr:last-child td { border-bottom: none; }
 table.data tbody tr:hover { background: var(--panel-2); }
 table.data tr.clickable { cursor: pointer; }
 
-/* A row may be tinted by status. This is the only place a colour wash covers a large area, and
-   it is doing real work: it lets an operator find the failing rows without reading every cell. */
-table.data tr.row-danger { background: var(--danger-wash); }
-table.data tr.row-warn { background: var(--warn-wash); }
-table.data tr.row-danger:hover { box-shadow: inset 0 0 0 1px var(--danger-line); }
-table.data tr.row-warn:hover { box-shadow: inset 0 0 0 1px var(--warn-line); }
-table.data tr.row-danger:hover,
-table.data tr.row-warn:hover { background: var(--panel-2); }
+/* A row in trouble carries a status-coloured edge on its leading cell. Enough to find the failing
+   rows down a long column without reading every cell; a full-width pastel wash did the same job
+   while turning half the dashboard pink and beige. */
+table.data tr.row-danger td:first-child { box-shadow: inset 3px 0 0 var(--danger); }
+table.data tr.row-warn td:first-child { box-shadow: inset 3px 0 0 var(--warn); }
 
 /* The leading cell: the thing the row is about. */
 table.data td.primary {
@@ -859,10 +874,10 @@ table.data.compact td { padding: var(--sp-1) var(--sp-3); }
     box-shadow: 1px 0 0 var(--line);
   }
 
-  table.data th:first-child { z-index: 3; background: var(--panel-2); }
+  table.data th:first-child { z-index: 3; background: var(--panel); }
   table.data tbody tr:hover td:first-child { background: var(--panel-2); }
-  table.data tr.row-danger td:first-child { background: var(--danger-wash); }
-  table.data tr.row-warn td:first-child { background: var(--warn-wash); }
+  table.data tr.row-danger td:first-child { box-shadow: inset 3px 0 0 var(--danger), 1px 0 0 var(--line); }
+  table.data tr.row-warn td:first-child { box-shadow: inset 3px 0 0 var(--warn), 1px 0 0 var(--line); }
 }
 
 /* ---------------------------------------------------------------- status */
@@ -888,6 +903,13 @@ table.data.compact td { padding: var(--sp-1) var(--sp-3); }
 .stat-info { color: var(--info); }
 .stat-quiet { color: var(--text-3); font-weight: var(--fw-normal); }
 
+/* The state is carried by the marker alone; the word stays in body colour. Used for the common,
+   expected states so the exceptional ones are the only coloured words on screen. */
+.stat-text.stat-calm { color: var(--text); font-weight: var(--fw-normal); }
+.stat-calm.stat-ok .dot { color: var(--ok); }
+.stat-calm.stat-warn .dot { color: var(--warn); }
+.stat-calm.stat-danger .dot { color: var(--danger); }
+
 .dot {
   width: 6px;
   height: 6px;
@@ -908,18 +930,20 @@ table.data.compact td { padding: var(--sp-1) var(--sp-3); }
   align-items: center;
   height: 18px;
   padding: 0 var(--sp-2);
-  font-size: var(--fs-micro);
-  font-weight: var(--fw-semibold);
-  border-radius: var(--r-sm);
+  font-size: var(--fs-meta);
+  font-weight: var(--fw-normal);
+  border-radius: var(--r-xs);
   white-space: nowrap;
 }
 
-.badge-ok { color: var(--ok); background: var(--ok-wash); box-shadow: inset 0 0 0 1px var(--ok-line); }
-.badge-warn { color: var(--warn); background: var(--warn-wash); box-shadow: inset 0 0 0 1px var(--warn-line); }
-.badge-danger { color: var(--danger); background: var(--danger-wash); box-shadow: inset 0 0 0 1px var(--danger-line); }
-.badge-info { color: var(--info); background: var(--info-wash); box-shadow: inset 0 0 0 1px var(--info-line); }
-.badge-neutral { color: var(--quiet); background: var(--quiet-wash); box-shadow: inset 0 0 0 1px var(--quiet-line); }
-.badge-accent { color: var(--accent); background: var(--accent-wash); box-shadow: inset 0 0 0 1px var(--accent-line); }
+/* Outlined, not filled: a tag labels a thing, it is not a status light, so it should not compete
+   with the coloured markers that are. */
+.badge-ok { color: var(--ok); box-shadow: inset 0 0 0 1px var(--ok-line); }
+.badge-warn { color: var(--warn); box-shadow: inset 0 0 0 1px var(--warn-line); }
+.badge-danger { color: var(--danger); box-shadow: inset 0 0 0 1px var(--danger-line); }
+.badge-info { color: var(--info); box-shadow: inset 0 0 0 1px var(--info-line); }
+.badge-neutral { color: var(--text-2); box-shadow: inset 0 0 0 1px var(--line-strong); }
+.badge-accent { color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent-line); }
 
 .count {
   display: inline-flex;
@@ -942,8 +966,8 @@ table.data.compact td { padding: var(--sp-1) var(--sp-3); }
 /* ---------------------------------------------------------------- metrics */
 
 /*
- * A readout, not a metric card. No border, no background, no shadow: a small uppercase label
- * over a large tabular figure, separated from its neighbours by a rule. Five of these in a row
+ * A readout, not a metric card. No border, no background, no shadow: a small label over a large
+ * tabular figure, separated from its neighbours by a rule. Five of these in a row
  * read as an instrument cluster; five bordered boxes read as a template.
  */
 .readouts {

@@ -41,42 +41,44 @@ export interface BarDatum {
       </div>
     } @else {
       <figure class="chart">
-        <svg
-          [attr.viewBox]="'0 0 ' + width + ' ' + height"
-          preserveAspectRatio="none"
-          role="img"
-          [attr.aria-label]="ariaLabel()"
-        >
-          <!-- Horizontal gridlines, with the value labelled at each one. -->
-          @for (line of gridLines(); track line.value) {
-            <line
-              [attr.x1]="padLeft"
-              [attr.x2]="width - padRight"
-              [attr.y1]="line.y"
-              [attr.y2]="line.y"
-              class="grid"
-            />
-            <text [attr.x]="padLeft - 6" [attr.y]="line.y + 3" class="axis-label" text-anchor="end">
-              {{ line.value }}
-            </text>
+        <!-- Axis labels are HTML laid over the plot rather than SVG text. The SVG stretches to the
+             container's width, and text inside a non-uniformly scaled SVG stretches with it. -->
+        <div class="plot">
+          <svg
+            [attr.viewBox]="'0 0 ' + width + ' ' + height"
+            preserveAspectRatio="none"
+            role="img"
+            [attr.aria-label]="ariaLabel()"
+          >
+            @for (tick of ticks(); track tick.value) {
+              <line x1="0" [attr.x2]="width" [attr.y1]="tick.y" [attr.y2]="tick.y" class="grid" />
+            }
+
+            <!-- Min/max spread. -->
+            <path [attr.d]="bandPath()" class="band" />
+
+            <!-- Average. -->
+            <path [attr.d]="linePath()" class="line" />
+          </svg>
+
+          <!-- Last point, marked so the current value is obvious. A positioned element rather than
+               an SVG circle, which the same scaling would squash into an ellipse. -->
+          <span
+            class="marker"
+            [style.left.%]="(lastPoint().x / width) * 100"
+            [style.top.%]="(lastPoint().y / height) * 100"
+          ></span>
+
+          @for (tick of ticks(); track tick.value) {
+            <span class="y-label num" [style.top.%]="(tick.y / height) * 100">{{ tick.value }}</span>
           }
+        </div>
 
-          <!-- Min/max spread. -->
-          <path [attr.d]="bandPath()" class="band" />
-
-          <!-- Average. -->
-          <path [attr.d]="linePath()" class="line" />
-
-          <!-- Last point, marked so the current value is obvious. -->
-          <circle [attr.cx]="lastPoint().x" [attr.cy]="lastPoint().y" r="3" class="marker" />
-
-          <!-- Time axis: first and last bucket only. Labelling every bucket would be unreadable
-               at this width, and the range is what matters. -->
-          <text [attr.x]="padLeft" [attr.y]="height - 4" class="axis-label">{{ firstLabel() }}</text>
-          <text [attr.x]="width - padRight" [attr.y]="height - 4" class="axis-label" text-anchor="end">
-            {{ lastLabel() }}
-          </text>
-        </svg>
+        <!-- Time axis: first and last bucket only. The range is what matters. -->
+        <div class="x-axis small text-3 num">
+          <span>{{ firstLabel() }}</span>
+          <span>{{ lastLabel() }}</span>
+        </div>
 
         <figcaption class="legend text-2 small">
           <span class="key"><i class="swatch line-swatch"></i>Average</span>
@@ -92,9 +94,16 @@ export interface BarDatum {
     `
       .chart { margin: 0; }
 
-      svg {
-        width: 100%;
+      .plot {
+        position: relative;
         height: 200px;
+        margin-left: 36px;
+      }
+
+      svg {
+        display: block;
+        width: 100%;
+        height: 100%;
         overflow: visible;
       }
 
@@ -106,29 +115,43 @@ export interface BarDatum {
 
       .band {
         fill: var(--accent);
-        opacity: 0.16;
+        opacity: 0.14;
       }
 
       .line {
         fill: none;
         stroke: var(--accent);
-        stroke-width: 2;
+        stroke-width: 1.75;
         stroke-linejoin: round;
         stroke-linecap: round;
-        /* Keeps the stroke 2px regardless of the non-uniform viewBox scaling. */
+        /* Keeps the stroke width constant under the non-uniform viewBox scaling. */
         vector-effect: non-scaling-stroke;
       }
 
       .marker {
-        fill: var(--accent);
-        stroke: var(--panel);
-        stroke-width: 2;
-        vector-effect: non-scaling-stroke;
+        position: absolute;
+        width: 7px;
+        height: 7px;
+        margin: -3.5px 0 0 -3.5px;
+        background: var(--accent);
+        border-radius: 50%;
+        box-shadow: 0 0 0 2px var(--panel);
       }
 
-      .axis-label {
+      .y-label {
+        position: absolute;
+        right: calc(100% + 8px);
+        transform: translateY(-50%);
         font-size: var(--fs-micro);
-        fill: var(--text-3);
+        color: var(--text-3);
+        white-space: nowrap;
+      }
+
+      .x-axis {
+        display: flex;
+        justify-content: space-between;
+        margin: var(--sp-1) 0 0 36px;
+        font-size: var(--fs-micro);
       }
 
       .no-data {
@@ -169,44 +192,35 @@ export class TrendChartComponent {
 
   protected readonly width = 600;
   protected readonly height = 200;
-  protected readonly padLeft = 34;
-  protected readonly padRight = 8;
-  protected readonly padTop = 10;
-  protected readonly padBottom = 20;
 
-  /** Y scale, padded so the line never sits exactly on the frame. */
+  /**
+   * Y scale snapped to round gridline values (1, 2, 2.5 or 5 times a power of ten), so the axis
+   * reads 0, 10, 20 rather than -4, 10, 24, 37.
+   */
   private readonly scale = computed(() => {
     const data = this.points();
-    const mins = data.map((p) => p.minTemperature);
-    const maxes = data.map((p) => p.maxTemperature);
-
-    let min = Math.min(...mins);
-    let max = Math.max(...maxes);
+    let min = Math.min(...data.map((p) => p.minTemperature));
+    let max = Math.max(...data.map((p) => p.maxTemperature));
 
     // A perfectly flat series would give a zero-height range and divide by zero.
     if (max - min < 1) {
-      const mid = (max + min) / 2;
-      min = mid - 1;
-      max = mid + 1;
+      min -= 1;
+      max += 1;
     }
 
-    const headroom = (max - min) * 0.1;
-    return { min: min - headroom, max: max + headroom };
-  });
+    const step = niceStep((max - min) / 4);
 
-  private readonly plotWidth = computed(() => this.width - this.padLeft - this.padRight);
-  private readonly plotHeight = computed(() => this.height - this.padTop - this.padBottom);
+    return { min: Math.floor(min / step) * step, max: Math.ceil(max / step) * step, step };
+  });
 
   private x(index: number): number {
     const count = this.points().length;
-    const step = count > 1 ? this.plotWidth() / (count - 1) : 0;
-    return this.padLeft + index * step;
+    return count > 1 ? (this.width / (count - 1)) * index : 0;
   }
 
   private y(value: number): number {
     const { min, max } = this.scale();
-    const ratio = (value - min) / (max - min);
-    return this.padTop + this.plotHeight() * (1 - ratio);
+    return this.height * (1 - (value - min) / (max - min));
   }
 
   readonly linePath = computed(() =>
@@ -229,13 +243,13 @@ export class TrendChartComponent {
     return [...top, ...bottom, 'Z'].join(' ');
   });
 
-  readonly gridLines = computed(() => {
-    const { min, max } = this.scale();
-    const steps = 4;
+  readonly ticks = computed(() => {
+    const { min, max, step } = this.scale();
+    const count = Math.round((max - min) / step);
 
-    return Array.from({ length: steps + 1 }, (_, i) => {
-      const value = min + ((max - min) / steps) * i;
-      return { value: Math.round(value), y: this.y(value) };
+    return Array.from({ length: count + 1 }, (_, i) => {
+      const value = +(min + step * i).toFixed(6);
+      return { value, y: this.y(value) };
     });
   });
 
@@ -259,6 +273,14 @@ export class TrendChartComponent {
 
     return `Temperature trend over ${data.length} hourly buckets. Latest average ${latest.avgTemperature}${this.unit()}, range ${latest.minTemperature} to ${latest.maxTemperature}.`;
   });
+}
+
+/** The smallest of 1, 2, 2.5, 5 or 10 times a power of ten that is at least `raw`. */
+export function niceStep(raw: number): number {
+  const magnitude = 10 ** Math.floor(Math.log10(raw));
+  const step = [1, 2, 2.5, 5, 10].find((m) => m * magnitude >= raw) ?? 10;
+
+  return step * magnitude;
 }
 
 function formatBucket(iso: string | undefined): string {
@@ -292,7 +314,8 @@ function formatBucket(iso: string | undefined): string {
       <ul class="bars">
         @for (row of rows(); track row.label) {
           <li>
-            <span class="label" [title]="row.label">{{ row.label }}</span>
+            <span class="name" [title]="row.label">{{ row.label }}</span>
+            <span class="value num">{{ row.value }}</span>
 
             <span class="track">
               <span
@@ -307,8 +330,6 @@ function formatBucket(iso: string | undefined): string {
                 ></span>
               }
             </span>
-
-            <span class="value mono">{{ row.value }}</span>
           </li>
         }
       </ul>
@@ -325,20 +346,22 @@ function formatBucket(iso: string | undefined): string {
     `
       .bars {
         display: grid;
-        gap: var(--sp-2);
+        gap: var(--sp-3);
         margin: 0;
         padding: 0;
         list-style: none;
       }
 
+      /* Name and figure on one line, the bar beneath: full place names stay readable instead of
+         being cut to fit a fixed label column. */
       li {
         display: grid;
-        grid-template-columns: minmax(80px, 150px) 1fr 44px;
-        gap: var(--sp-2);
-        align-items: center;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: var(--sp-1) var(--sp-2);
+        align-items: baseline;
       }
 
-      .label {
+      .name {
         font-size: var(--fs-sm);
         color: var(--text-2);
         overflow: hidden;
@@ -347,17 +370,18 @@ function formatBucket(iso: string | undefined): string {
       }
 
       .track {
+        grid-column: 1 / -1;
         position: relative;
-        height: 18px;
+        height: 6px;
         background: var(--panel-3);
-        border-radius: var(--r-sm);
+        border-radius: 1px;
         overflow: hidden;
       }
 
       .fill {
         position: absolute;
         inset: 0 auto 0 0;
-        border-radius: var(--r-sm);
+        border-radius: 1px;
         transition: width 0.25s ease-out;
       }
 
@@ -381,10 +405,10 @@ function formatBucket(iso: string | undefined): string {
       }
 
       .swatch {
-        width: 12px;
-        height: 10px;
+        width: 8px;
+        height: 8px;
         background: var(--ok);
-        border-radius: 2px;
+        border-radius: 1px;
       }
     `,
   ],
@@ -431,37 +455,27 @@ export interface DonutSlice {
     @if (total() === 0) {
       <p class="text-2 small">{{ emptyMessage() }}</p>
     } @else {
-      <div class="donut-wrap">
-        <svg viewBox="0 0 120 120" role="img" [attr.aria-label]="ariaLabel()">
-          <!-- Each slice is a stroked circle arc, offset by the slices before it. Cheaper and
-               more readable than generating path arcs by hand. -->
-          @for (slice of arcs(); track slice.label) {
-            <circle
-              cx="60"
-              cy="60"
-              [attr.r]="radius"
-              fill="none"
-              [attr.stroke]="slice.color"
-              [attr.stroke-width]="thickness"
-              [attr.stroke-dasharray]="slice.dash"
-              [attr.stroke-dashoffset]="slice.offset"
-              transform="rotate(-90 60 60)"
-            />
-          }
+      <div class="breakdown" role="img" [attr.aria-label]="ariaLabel()">
+        <p class="headline">
+          <span class="total num">{{ total() }}</span>
+          <span class="text-2">{{ centreLabel() }}</span>
+        </p>
 
-          <text x="60" y="57" class="total" text-anchor="middle">{{ total() }}</text>
-          <text x="60" y="72" class="total-label" text-anchor="middle">{{ centreLabel() }}</text>
-        </svg>
+        <!-- One stacked bar rather than a ring. Proportions along a line can be compared at a
+             glance; arc lengths around a donut cannot, and the ring was mostly decoration. -->
+        <div class="bar">
+          @for (slice of visible(); track slice.label) {
+            <span [style.flex-grow]="slice.value" [style.background]="slice.color"></span>
+          }
+        </div>
 
         <ul class="legend">
-          @for (slice of slices(); track slice.label) {
-            @if (slice.value > 0) {
-              <li>
-                <i class="swatch" [style.background]="slice.color"></i>
-                <span class="label">{{ slice.label }}</span>
-                <span class="mono">{{ slice.value }}</span>
-              </li>
-            }
+          @for (slice of visible(); track slice.label) {
+            <li>
+              <i class="swatch" [style.background]="slice.color"></i>
+              <span>{{ slice.label }}</span>
+              <span class="num">{{ slice.value }}</span>
+            </li>
           }
         </ul>
       </div>
@@ -470,31 +484,28 @@ export interface DonutSlice {
   changeDetection: ChangeDetectionStrategy.Eager,
   styles: [
     `
-      .donut-wrap {
-        display: flex;
-        gap: var(--sp-5);
-        align-items: center;
-        flex-wrap: wrap;
-      }
+      .breakdown { display: grid; gap: var(--sp-3); }
 
-      svg {
-        width: 132px;
-        height: 132px;
-        flex: 0 0 auto;
+      .headline {
+        display: flex;
+        gap: var(--sp-2);
+        align-items: baseline;
+        margin: 0;
       }
 
       .total {
         font-size: var(--fs-metric);
-        font-weight: 600;
-        fill: var(--text);
+        font-weight: var(--fw-semibold);
+        line-height: var(--lh-tight);
       }
 
-      .total-label {
-        font-size: var(--fs-micro);
-        fill: var(--text-3);
-        text-transform: uppercase;
-        letter-spacing: var(--tr-wide);
+      .bar {
+        display: flex;
+        gap: 2px;
+        height: 8px;
       }
+
+      .bar span { min-width: 3px; border-radius: 1px; }
 
       .legend {
         display: grid;
@@ -502,24 +513,24 @@ export interface DonutSlice {
         margin: 0;
         padding: 0;
         list-style: none;
-        flex: 1 1 140px;
       }
 
       .legend li {
         display: grid;
-        grid-template-columns: 12px 1fr auto;
+        grid-template-columns: 10px 1fr auto;
         gap: var(--sp-2);
         align-items: center;
         font-size: var(--fs-sm);
+        color: var(--text-2);
       }
+
+      .legend .num { color: var(--text); }
 
       .swatch {
-        width: 10px;
-        height: 10px;
-        border-radius: var(--r-xs);
+        width: 8px;
+        height: 8px;
+        border-radius: 1px;
       }
-
-      .label { color: var(--text-2); }
     `,
   ],
 })
@@ -528,33 +539,9 @@ export class DonutChartComponent {
   readonly centreLabel = input<string>('total');
   readonly emptyMessage = input<string>('Nothing to show.');
 
-  protected readonly radius = 48;
-  protected readonly thickness = 14;
-
   readonly total = computed(() => this.slices().reduce((sum, s) => sum + s.value, 0));
 
-  readonly arcs = computed(() => {
-    const circumference = 2 * Math.PI * this.radius;
-    const total = this.total();
-    let consumed = 0;
-
-    return this.slices()
-      .filter((s) => s.value > 0)
-      .map((slice) => {
-        const length = (slice.value / total) * circumference;
-
-        const arc = {
-          label: slice.label,
-          color: slice.color,
-          dash: `${length} ${circumference - length}`,
-          // Negative offset advances the arc clockwise past the slices already drawn.
-          offset: -consumed,
-        };
-
-        consumed += length;
-        return arc;
-      });
-  });
+  readonly visible = computed(() => this.slices().filter((s) => s.value > 0));
 
   readonly ariaLabel = computed(() => {
     const parts = this.slices()
@@ -578,7 +565,7 @@ export class DonutChartComponent {
         <span class="shell">
           <span class="fill" [style.width.%]="clamped()" [style.background]="color()"></span>
         </span>
-        <span class="pct mono">{{ clamped() }}%</span>
+        <span class="pct num">{{ clamped() }}%</span>
       </span>
     }
   `,

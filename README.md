@@ -23,7 +23,7 @@ ASP.NET Core 10 · Angular 22 · SQL Server · EF Core
 | **Live updates** | SignalR push of alert and device-status changes; dashboard, alert list, device pages and the top bar refresh without a reload, falling back to polling while disconnected |
 | **Background work** | Offline detection sweeper, data retention worker |
 | **Simulator** | Separate console app driving a configurable virtual fleet, with measured throughput and latency output |
-| **Engineering** | 155 backend tests, 27 frontend tests, ProblemDetails error contract, correlation IDs, rate limiting, health endpoints, Docker, CI |
+| **Engineering** | 155 backend tests, 30 frontend tests, ProblemDetails error contract, correlation IDs, rate limiting, health endpoints, Docker, CI |
 
 Not yet built: Redis, a message queue, Keycloak, multi-tenancy, and
 notification channels. Those are the project's planned later phases, and nothing in the UI
@@ -222,7 +222,7 @@ submission through the actual endpoint.
 # skip cleanly (rather than failing) if there is none.
 cd backend/tests/DevicePulse.Tests && dotnet run
 
-# Frontend — 27 tests, Vitest in jsdom.
+# Frontend — 30 tests, Vitest in jsdom.
 cd frontend/devicepulse-web && npm test -- --watch=false
 ```
 

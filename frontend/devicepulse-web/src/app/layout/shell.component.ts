@@ -1,5 +1,6 @@
 import { Component, DestroyRef, OnDestroy, OnInit, computed, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 
 import { AuthService } from '../core/auth/auth.service';
@@ -13,7 +14,7 @@ import { ToastsComponent } from './toasts.component';
 interface NavItem {
   label: string;
   path: string;
-  icon: string;
+  icon: SafeHtml;
   /** Any one of these permissions is enough to show the item. */
   permissions: string[];
 }
@@ -70,10 +71,6 @@ interface NavItem {
             </div>
           }
         </nav>
-
-        <div class="sidebar-foot">
-          <span class="label">{{ user()?.roles?.join(', ') }}</span>
-        </div>
       </aside>
 
       <div class="main">
@@ -256,11 +253,9 @@ interface NavItem {
       .nav-group { display: grid; gap: 1px; }
 
       .nav-title {
-        font-size: var(--fs-micro);
-        font-weight: var(--fw-semibold);
-        letter-spacing: var(--tr-wide);
-        text-transform: uppercase;
-        color: var(--text-3);
+        font-size: var(--fs-meta);
+        font-weight: var(--fw-medium);
+        color: var(--text-2);
         padding: 0 var(--sp-2) var(--sp-2);
       }
 
@@ -312,15 +307,6 @@ interface NavItem {
       .nav-item:hover .icon { color: var(--text-2); }
       .nav-item .icon svg { width: 15px; height: 15px; }
       .nav-item .count { margin-left: auto; }
-
-      .sidebar-foot {
-        flex: 0 0 auto;
-        padding: var(--sp-3);
-        border-top: 1px solid var(--line);
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-      }
 
       /* ---- main ---- */
 
@@ -375,12 +361,8 @@ interface NavItem {
         border-color: var(--accent);
       }
 
-      /* ---- alert pulse ---- */
+      /* ---- live state and alert pulse ---- */
 
-      /*
-       * Always-visible count of open alerts. Quiet when there is nothing to do, and coloured
-       * only when there is -- a permanently red badge trains people to ignore it.
-       */
       /* Quiet when live, since that is the normal state; it only draws the eye when it is not. */
       .live-state {
         display: inline-flex;
@@ -395,6 +377,10 @@ interface NavItem {
       .live-state.on { color: var(--text-3); }
       .live-state.on .dot { background: var(--ok); }
 
+      /*
+       * Always-visible count of open alerts. Quiet when there is nothing to do, and coloured
+       * only when there is -- a permanently red badge trains people to ignore it.
+       */
       .alert-pulse {
         display: inline-flex;
         gap: var(--sp-2);
@@ -547,6 +533,8 @@ export class ShellComponent implements OnInit, OnDestroy {
   private readonly notifications = inject(NotificationService);
   private readonly destroyRef = inject(DestroyRef);
 
+  private readonly sanitizer = inject(DomSanitizer);
+
   readonly theme = inject(ThemeService);
   readonly live = inject(RealtimeService);
 
@@ -585,35 +573,41 @@ export class ShellComponent implements OnInit, OnDestroy {
    * Grouped so the sidebar separates day-to-day monitoring from administration — the
    * distinction that matters to whoever is using it.
    */
+  /**
+   * The icons are static strings defined in this file, so marking them trusted is safe. Without
+   * it Angular's sanitizer strips every SVG element and the nav renders with empty icon slots.
+   */
+  private readonly icon = (name: keyof typeof icons): SafeHtml => this.sanitizer.bypassSecurityTrustHtml(icons[name]);
+
   private readonly groups: { title: string; items: NavItem[] }[] = [
     {
       title: 'Monitor',
       items: [
-        { label: 'Dashboard', path: '/dashboard', icon: icons.dashboard, permissions: [Permissions.dashboardView] },
-        { label: 'Devices', path: '/devices', icon: icons.devices, permissions: [Permissions.deviceView] },
-        { label: 'Alerts', path: '/alerts', icon: icons.alerts, permissions: [Permissions.alertView] },
+        { label: 'Dashboard', path: '/dashboard', icon: this.icon('dashboard'), permissions: [Permissions.dashboardView] },
+        { label: 'Devices', path: '/devices', icon: this.icon('devices'), permissions: [Permissions.deviceView] },
+        { label: 'Alerts', path: '/alerts', icon: this.icon('alerts'), permissions: [Permissions.alertView] },
       ],
     },
     {
       title: 'Configure',
       items: [
-        { label: 'Alert rules', path: '/alert-rules', icon: icons.rules, permissions: [Permissions.alertRuleView] },
-        { label: 'Settings', path: '/settings', icon: icons.settings, permissions: [Permissions.settingsView] },
+        { label: 'Alert rules', path: '/alert-rules', icon: this.icon('rules'), permissions: [Permissions.alertRuleView] },
+        { label: 'Settings', path: '/settings', icon: this.icon('settings'), permissions: [Permissions.settingsView] },
         {
           label: 'Reference data',
           path: '/reference-data',
-          icon: icons.reference,
+          icon: this.icon('reference'),
           permissions: [Permissions.referenceDataView],
         },
-        { label: 'Simulator', path: '/simulator', icon: icons.simulator, permissions: [Permissions.simulatorView] },
+        { label: 'Simulator', path: '/simulator', icon: this.icon('simulator'), permissions: [Permissions.simulatorView] },
       ],
     },
     {
       title: 'Administer',
       items: [
-        { label: 'Users', path: '/admin/users', icon: icons.users, permissions: [Permissions.userView] },
-        { label: 'Roles', path: '/admin/roles', icon: icons.roles, permissions: [Permissions.roleView] },
-        { label: 'Audit log', path: '/audit', icon: icons.audit, permissions: [Permissions.auditView] },
+        { label: 'Users', path: '/admin/users', icon: this.icon('users'), permissions: [Permissions.userView] },
+        { label: 'Roles', path: '/admin/roles', icon: this.icon('roles'), permissions: [Permissions.roleView] },
+        { label: 'Audit log', path: '/audit', icon: this.icon('audit'), permissions: [Permissions.auditView] },
       ],
     },
   ];

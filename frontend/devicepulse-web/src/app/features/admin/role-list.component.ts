@@ -46,63 +46,62 @@ import {
       </dp-page-header>
 
       @if (loading()) {
-        <div class="skeleton" style="height: 280px; border-radius: 12px"></div>
+        <div class="skeleton" style="height: 280px"></div>
       } @else if (roles().length === 0) {
         <div class="panel">
           <dp-empty title="No roles" message="The backend seeds four system roles on first run." />
         </div>
       } @else {
-        <div class="roles">
-          @for (role of roles(); track role.roleId) {
-            <article class="panel role">
-              <div class="panel-body">
-                <div class="row row-wrap">
-                  <h3>{{ role.name }}</h3>
-                  @if (role.isSystemRole) {
-                    <span class="badge badge-accent" title="Seeded by the application; cannot be renamed or disabled">
-                      built-in
-                    </span>
-                  }
-                  @if (!role.isActive) {
-                    <span class="badge badge-neutral">disabled</span>
-                  }
-                  <span class="spacer"></span>
-                  <span class="text-2 small">{{ role.userCount }} user(s)</span>
-                </div>
-
-                @if (role.description) {
-                  <p class="text-2 small desc">{{ role.description }}</p>
+        <div class="panel">
+          <div class="table-wrap">
+            <table class="data">
+              <thead>
+                <tr>
+                  <th>Role</th>
+                  <th class="col-optional">Description</th>
+                  <th>Permissions</th>
+                  <th class="right">Users</th>
+                  <th class="actions"><span class="sr-only">Actions</span></th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (role of roles(); track role.roleId) {
+                  <tr [class.inactive]="!role.isActive">
+                    <td class="primary nowrap">
+                      {{ role.name }}
+                      @if (role.isSystemRole) {
+                        <span class="tag" title="Seeded by the application; cannot be renamed or disabled">built-in</span>
+                      }
+                      @if (!role.isActive) {
+                        <span class="tag">disabled</span>
+                      }
+                    </td>
+                    <td class="text-2 col-optional desc">{{ role.description }}</td>
+                    <td>
+                      <!-- Coverage of the catalog, so "how much can this role do" is comparable
+                           down the column at a glance. -->
+                      <span class="coverage">
+                        <span class="meter">
+                          <span [style.width.%]="(role.permissions.length / (catalog().length || 1)) * 100"></span>
+                        </span>
+                        <span class="num">{{ role.permissions.length }}</span>
+                        <span class="text-3">of {{ catalog().length }}</span>
+                      </span>
+                    </td>
+                    <td class="right num">{{ role.userCount }}</td>
+                    <td class="actions">
+                      @if (canManagePermissions()) {
+                        <button type="button" class="btn btn-row" (click)="openPermissions(role)">Permissions</button>
+                      }
+                      @if (canManageRoles()) {
+                        <button type="button" class="btn btn-row" (click)="openEdit(role)">Edit</button>
+                      }
+                    </td>
+                  </tr>
                 }
-
-                <div class="perm-count">
-                  <strong>{{ role.permissions.length }}</strong> of {{ catalog().length }} permissions
-                </div>
-
-                <div class="perm-preview">
-                  @for (key of role.permissions.slice(0, 6); track key) {
-                    <span class="badge badge-neutral mono">{{ key }}</span>
-                  }
-                  @if (role.permissions.length > 6) {
-                    <span class="text-3 small">+{{ role.permissions.length - 6 }} more</span>
-                  }
-                </div>
-              </div>
-
-              <div class="panel-foot row">
-                <span class="spacer"></span>
-
-                <dp-if-permitted [permission]="perm.permissionManage">
-                  <button type="button" class="btn btn-sm" (click)="openPermissions(role)">
-                    Permissions
-                  </button>
-                </dp-if-permitted>
-
-                <dp-if-permitted [permission]="perm.roleManage">
-                  <button type="button" class="btn btn-sm btn-ghost" (click)="openEdit(role)">Edit</button>
-                </dp-if-permitted>
-              </div>
-            </article>
-          }
+              </tbody>
+            </table>
+          </div>
         </div>
       }
     </div>
@@ -255,32 +254,36 @@ import {
   changeDetection: ChangeDetectionStrategy.Eager,
   styles: [
     `
-      .roles {
-        display: grid;
-        gap: var(--sp-4);
-        grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
+      .desc { max-width: 52ch; }
+
+      .tag {
+        margin-left: var(--sp-2);
+        font-size: var(--fs-meta);
+        font-weight: var(--fw-normal);
+        color: var(--text-3);
       }
 
-      .role { display: flex; flex-direction: column; }
-      .role .panel-body { flex: 1 1 auto; }
-      .role h3 { font-size: 0.95rem; }
+      tr.inactive td { color: var(--text-3); }
 
-      .desc { margin: var(--sp-2) 0 0; }
-
-      .perm-count {
-        margin: var(--sp-3) 0 var(--sp-2);
-        font-size: 0.82rem;
-        color: var(--text-2);
-      }
-
-      .perm-preview {
-        display: flex;
-        gap: var(--sp-1);
-        flex-wrap: wrap;
+      .coverage {
+        display: inline-flex;
+        gap: var(--sp-2);
         align-items: center;
+        white-space: nowrap;
       }
 
-      .perm-preview .badge { font-size: 0.68rem; font-weight: 500; }
+      .meter {
+        position: relative;
+        width: 64px;
+        height: 4px;
+        background: var(--panel-3);
+      }
+
+      .meter span {
+        position: absolute;
+        inset: 0 auto 0 0;
+        background: var(--accent);
+      }
 
       .notice {
         margin: 0;
@@ -345,6 +348,9 @@ export class RoleListComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
 
   readonly perm = Permissions;
+
+  readonly canManageRoles = computed(() => this.auth.has(Permissions.roleManage));
+  readonly canManagePermissions = computed(() => this.auth.has(Permissions.permissionManage));
 
   readonly roles = signal<Role[]>([]);
   readonly catalog = signal<Permission[]>([]);
