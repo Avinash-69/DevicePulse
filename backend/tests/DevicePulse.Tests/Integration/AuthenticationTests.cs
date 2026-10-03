@@ -1,6 +1,5 @@
 using System.Net;
 using System.Net.Http.Json;
-using DevicePulse.Api.Data;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Xunit;

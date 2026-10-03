@@ -380,7 +380,9 @@ public sealed class DeviceAndTelemetryTests
         await client.PostAsJsonAsync("/api/v1/telemetry/ingest", new
         {
             deviceId = device.DeviceId,
-            temperature = 24.0, battery = 88.0, signalStrength = -60,
+            temperature = 24.0,
+            battery = 88.0,
+            signalStrength = -60,
             recordedAt = now,
             messageId = $"ooo-new-{Guid.NewGuid():N}"
         }, Json);
@@ -390,7 +392,9 @@ public sealed class DeviceAndTelemetryTests
         await client.PostAsJsonAsync("/api/v1/telemetry/ingest", new
         {
             deviceId = device.DeviceId,
-            temperature = 23.0, battery = 89.0, signalStrength = -61,
+            temperature = 23.0,
+            battery = 89.0,
+            signalStrength = -61,
             recordedAt = now.AddHours(-2),
             messageId = $"ooo-old-{Guid.NewGuid():N}"
         }, Json);
@@ -568,7 +572,9 @@ public sealed class DeviceAndTelemetryTests
 
         var response = await deviceClient.PostAsJsonAsync("/api/v1/telemetry", new
         {
-            temperature = 23.0, battery = 80.0, signalStrength = -60
+            temperature = 23.0,
+            battery = 80.0,
+            signalStrength = -60
         }, Json);
 
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
@@ -584,7 +590,9 @@ public sealed class DeviceAndTelemetryTests
 
         var response = await client.PostAsJsonAsync("/api/v1/telemetry", new
         {
-            temperature = 23.0, battery = 80.0, signalStrength = -60
+            temperature = 23.0,
+            battery = 80.0,
+            signalStrength = -60
         }, Json);
 
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);

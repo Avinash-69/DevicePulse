@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using System.Net.Http.Json;
 using DevicePulse.Api.Authorization;
 using DevicePulse.Api.Entities.Enums;
@@ -128,7 +128,9 @@ public sealed class AuthorizationAndConfigurationTests
         await admin.PostAsJsonAsync("/api/v1/telemetry/ingest", new
         {
             deviceId = device!.DeviceId,
-            temperature = 80.0, battery = 50.0, signalStrength = -60,
+            temperature = 80.0,
+            battery = 50.0,
+            signalStrength = -60,
             messageId = $"authz-{Guid.NewGuid():N}"
         }, Json);
 
@@ -179,7 +181,10 @@ public sealed class AuthorizationAndConfigurationTests
 
         await admin.PostAsJsonAsync("/api/v1/admin/users", new
         {
-            name = "Custom Role User", email, password, roleIds = new[] { role.RoleId }
+            name = "Custom Role User",
+            email,
+            password,
+            roleIds = new[] { role.RoleId }
         }, Json);
 
         var user = await _factory.CreateAuthenticatedClientAsync(email, password);
@@ -253,7 +258,9 @@ public sealed class AuthorizationAndConfigurationTests
 
         var renamed = await admin.PutAsJsonAsync($"/api/v1/admin/roles/{viewer.RoleId}", new
         {
-            name = "Renamed Viewer", description = viewer.Description, isActive = true
+            name = "Renamed Viewer",
+            description = viewer.Description,
+            isActive = true
         }, Json);
 
         // Viewer is referenced by name in code as the self-registration default; renaming it
@@ -262,7 +269,9 @@ public sealed class AuthorizationAndConfigurationTests
 
         var disabled = await admin.PutAsJsonAsync($"/api/v1/admin/roles/{viewer.RoleId}", new
         {
-            name = "Viewer", description = viewer.Description, isActive = false
+            name = "Viewer",
+            description = viewer.Description,
+            isActive = false
         }, Json);
 
         disabled.StatusCode.Should().Be(HttpStatusCode.BadRequest);
@@ -291,7 +300,9 @@ public sealed class AuthorizationAndConfigurationTests
         // should never be necessary.
         var demote = await admin.PutAsJsonAsync($"/api/v1/admin/users/{only.UserId}", new
         {
-            name = only.Name, email = only.Email, roleIds = new[] { viewerRoleId }
+            name = only.Name,
+            email = only.Email,
+            roleIds = new[] { viewerRoleId }
         }, Json);
 
         demote.StatusCode.Should().Be(HttpStatusCode.BadRequest);
@@ -318,7 +329,10 @@ public sealed class AuthorizationAndConfigurationTests
 
         var created = await (await admin.PostAsJsonAsync("/api/v1/admin/users", new
         {
-            name = "To Be Deactivated", email, password, roleIds = new[] { viewerRoleId }
+            name = "To Be Deactivated",
+            email,
+            password,
+            roleIds = new[] { viewerRoleId }
         }, Json)).Content.ReadFromJsonAsync<UserResponse>(Json);
 
         var anonymous = _factory.CreateClient();
@@ -452,7 +466,9 @@ public sealed class AuthorizationAndConfigurationTests
             (await (await admin.PostAsJsonAsync("/api/v1/telemetry/ingest", new
             {
                 deviceId = device!.DeviceId,
-                temperature = 22.0, battery = 50.0, signalStrength = -60,
+                temperature = 22.0,
+                battery = 50.0,
+                signalStrength = -60,
                 messageId = $"dis-{Guid.NewGuid():N}"
             }, Json)).Content.ReadFromJsonAsync<TelemetryIngestResponse>(Json))!.AlertsRaised;
 
@@ -512,11 +528,13 @@ public sealed class AuthorizationAndConfigurationTests
         var history = await admin.GetFromJsonAsync<List<SettingHistoryResponse>>(
             $"/api/v1/settings/{SettingKeys.OfflineTimeoutSeconds}/history", Json);
 
-        history!.Should().NotBeEmpty();
-        history[0].NewValue.Should().Be(newValue);
-        history[0].OldValue.Should().Be(before.Value);
-        history[0].ChangeReason.Should().Contain("faster offline detection");
-        history[0].ChangedBy.Should().NotBeNullOrWhiteSpace();
+        history.Should().NotBeNull().And.NotBeEmpty();
+
+        var newest = history![0];
+        newest.NewValue.Should().Be(newValue);
+        newest.OldValue.Should().Be(before.Value);
+        newest.ChangeReason.Should().Contain("faster offline detection");
+        newest.ChangedBy.Should().NotBeNullOrWhiteSpace();
 
         // And audited (§17).
         var audit = await admin.GetFromJsonAsync<PagedResult<AuditLogResponse>>(
@@ -643,7 +661,9 @@ public sealed class AuthorizationAndConfigurationTests
         await admin.PostAsJsonAsync("/api/v1/telemetry/ingest", new
         {
             deviceId = device!.DeviceId,
-            temperature = 90.0, battery = 50.0, signalStrength = -60,
+            temperature = 90.0,
+            battery = 50.0,
+            signalStrength = -60,
             messageId = $"life-{Guid.NewGuid():N}"
         }, Json);
 
@@ -695,7 +715,9 @@ public sealed class AuthorizationAndConfigurationTests
         await admin.PostAsJsonAsync("/api/v1/telemetry/ingest", new
         {
             deviceId = device!.DeviceId,
-            temperature = 95.0, battery = 50.0, signalStrength = -60,
+            temperature = 95.0,
+            battery = 50.0,
+            signalStrength = -60,
             messageId = $"skip-{Guid.NewGuid():N}"
         }, Json);
 
@@ -745,7 +767,9 @@ public sealed class AuthorizationAndConfigurationTests
             (await (await admin.PostAsJsonAsync("/api/v1/telemetry/ingest", new
             {
                 deviceId = device!.DeviceId,
-                temperature = 22.0, battery = 90.0, signalStrength = -120,
+                temperature = 22.0,
+                battery = 90.0,
+                signalStrength = -120,
                 messageId = $"cool-{Guid.NewGuid():N}"
             }, Json)).Content.ReadFromJsonAsync<TelemetryIngestResponse>(Json))!.AlertsRaised;
 
@@ -816,7 +840,10 @@ public sealed class AuthorizationAndConfigurationTests
 
         var created = await (await admin.PostAsJsonAsync("/api/v1/admin/users", new
         {
-            name = "Audit Subject", email, password, roleIds = new[] { viewerRoleId }
+            name = "Audit Subject",
+            email,
+            password,
+            roleIds = new[] { viewerRoleId }
         }, Json)).Content.ReadFromJsonAsync<UserResponse>(Json);
 
         await admin.PostAsJsonAsync($"/api/v1/admin/users/{created!.UserId}/reset-password",
@@ -863,7 +890,9 @@ public sealed class AuthorizationAndConfigurationTests
 
         var deactivate = await admin.PutAsJsonAsync($"/api/v1/reference/device-types/{type.DeviceTypeId}", new
         {
-            name = type.Name, description = type.Description, isActive = false
+            name = type.Name,
+            description = type.Description,
+            isActive = false
         }, Json);
 
         // An inactive type fails the reference-data check on every edit to those devices, so

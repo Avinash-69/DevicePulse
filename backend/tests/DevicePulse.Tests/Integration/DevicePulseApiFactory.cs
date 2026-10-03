@@ -1,4 +1,4 @@
-using System.Net.Http.Headers;
+﻿using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
 using DevicePulse.Api.Data;
@@ -27,13 +27,31 @@ namespace DevicePulse.Tests.Integration;
 /// </summary>
 public sealed class DevicePulseApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
 {
-    private const string MasterConnection =
-        "Server=localhost;Database=master;Trusted_Connection=True;TrustServerCertificate=True";
+    /// <summary>
+    /// How to reach SQL Server. Defaults to the local default instance with integrated
+    /// authentication, which is what a developer machine has; CI overrides these to point at a
+    /// service container with SQL authentication, since a Linux runner has no Windows identity
+    /// to trust.
+    /// </summary>
+    private static readonly string SqlServerHost =
+        Environment.GetEnvironmentVariable("DEVICEPULSE_TEST_SQL_SERVER") ?? "localhost";
+
+    private static readonly string? SqlUser = Environment.GetEnvironmentVariable("DEVICEPULSE_TEST_SQL_USER");
+
+    private static readonly string? SqlPassword = Environment.GetEnvironmentVariable("DEVICEPULSE_TEST_SQL_PASSWORD");
+
+    private static string Credentials =>
+        string.IsNullOrWhiteSpace(SqlUser)
+            ? "Trusted_Connection=True"
+            : $"User Id={SqlUser};Password={SqlPassword}";
+
+    private static string MasterConnection =>
+        $"Server={SqlServerHost};Database=master;{Credentials};TrustServerCertificate=True";
 
     private readonly string _databaseName = $"DevicePulseTest_{Guid.NewGuid():N}";
 
     public string ConnectionString =>
-        $"Server=localhost;Database={_databaseName};Trusted_Connection=True;TrustServerCertificate=True;MultipleActiveResultSets=True";
+        $"Server={SqlServerHost};Database={_databaseName};{Credentials};TrustServerCertificate=True;MultipleActiveResultSets=True";
 
     public const string SuperAdminEmail = "it-superadmin@devicepulse.test";
     public const string SuperAdminPassword = "IntegrationTest#2026";
