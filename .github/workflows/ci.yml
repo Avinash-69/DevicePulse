@@ -123,15 +123,25 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Audit dependencies
+      # Two tiers, because they answer different questions. The blocking one covers runtime
+      # dependencies: anything vulnerable there reaches a browser, so it fails the build. The
+      # advisory one covers the whole tree and is reported without failing, because the build
+      # toolchain currently carries advisories with no patched release in existence -- see the
+      # client README. Failing on those would mean a permanently red pipeline that teaches
+      # people to ignore it.
+      - name: Audit runtime dependencies
+        run: npm audit --omit=dev --audit-level=high
+
+      - name: Audit full tree (advisory)
+        continue-on-error: true
         run: npm audit --audit-level=high
 
       - name: Build
         run: npm run build -- --configuration production
 
+      # Vitest in jsdom, so the runner needs no browser at all.
       - name: Test
-        # The Karma launcher passes --no-sandbox, which headless Chrome needs on the runner.
-        run: npm run test -- --watch=false --browsers=ChromeHeadlessNoSandbox
+        run: npm test
 
   docker:
     name: Docker images

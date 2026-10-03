@@ -47,7 +47,7 @@ describe('AuthService', () => {
   });
 
   it('starts unauthenticated with nothing in storage', () => {
-    expect(service.isAuthenticated()).toBeFalse();
+    expect(service.isAuthenticated()).toBe(false);
     expect(service.user()).toBeNull();
   });
 
@@ -58,7 +58,7 @@ describe('AuthService', () => {
     expect(request.request.method).toBe('POST');
     request.flush(authResponse());
 
-    expect(service.isAuthenticated()).toBeTrue();
+    expect(service.isAuthenticated()).toBe(true);
     expect(service.user()?.email).toBe('ops@devicepulse.test');
     expect(service.accessToken).toBe('access-token-1');
   });
@@ -78,38 +78,38 @@ describe('AuthService', () => {
     const revived = TestBed.inject(AuthService);
     http = TestBed.inject(HttpTestingController);
 
-    expect(revived.isAuthenticated()).toBeTrue();
+    expect(revived.isAuthenticated()).toBe(true);
     expect(revived.user()?.email).toBe('ops@devicepulse.test');
-    expect(revived.has(Permissions.deviceView)).toBeTrue();
+    expect(revived.has(Permissions.deviceView)).toBe(true);
   });
 
   it('reports the permissions it holds and refuses the ones it does not', () => {
     service.login({ email: 'ops@devicepulse.test', password: 'secret' }).subscribe();
     http.expectOne(`${environment.apiBaseUrl}/auth/login`).flush(authResponse());
 
-    expect(service.has(Permissions.deviceView)).toBeTrue();
-    expect(service.has(Permissions.alertResolve)).toBeTrue();
+    expect(service.has(Permissions.deviceView)).toBe(true);
+    expect(service.has(Permissions.alertResolve)).toBe(true);
 
     // Not granted, so the UI must not offer it — the API would refuse it anyway.
-    expect(service.has(Permissions.settingsManage)).toBeFalse();
-    expect(service.has(Permissions.userCreate)).toBeFalse();
+    expect(service.has(Permissions.settingsManage)).toBe(false);
+    expect(service.has(Permissions.userCreate)).toBe(false);
   });
 
   it('matches permissions exactly rather than by prefix', () => {
     service.login({ email: 'ops@devicepulse.test', password: 'secret' }).subscribe();
     http.expectOne(`${environment.apiBaseUrl}/auth/login`).flush(authResponse());
 
-    expect(service.has('device')).toBeFalse();
-    expect(service.has('device.view.extra')).toBeFalse();
+    expect(service.has('device')).toBe(false);
+    expect(service.has('device.view.extra')).toBe(false);
   });
 
   it('hasAny is true when at least one permission is held', () => {
     service.login({ email: 'ops@devicepulse.test', password: 'secret' }).subscribe();
     http.expectOne(`${environment.apiBaseUrl}/auth/login`).flush(authResponse());
 
-    expect(service.hasAny(Permissions.settingsManage, Permissions.deviceView)).toBeTrue();
-    expect(service.hasAny(Permissions.settingsManage, Permissions.userCreate)).toBeFalse();
-    expect(service.hasAny()).toBeFalse();
+    expect(service.hasAny(Permissions.settingsManage, Permissions.deviceView)).toBe(true);
+    expect(service.hasAny(Permissions.settingsManage, Permissions.userCreate)).toBe(false);
+    expect(service.hasAny()).toBe(false);
   });
 
   it('clears the session on logout and revokes the refresh token', () => {
@@ -122,7 +122,7 @@ describe('AuthService', () => {
     expect(logout.request.body).toEqual({ refreshToken: 'refresh-token-1' });
     logout.flush(null);
 
-    expect(service.isAuthenticated()).toBeFalse();
+    expect(service.isAuthenticated()).toBe(false);
     expect(service.accessToken).toBeNull();
   });
 
@@ -136,7 +136,7 @@ describe('AuthService', () => {
     // still signed in.
     http.expectOne(`${environment.apiBaseUrl}/auth/logout`).error(new ProgressEvent('network'));
 
-    expect(service.isAuthenticated()).toBeFalse();
+    expect(service.isAuthenticated()).toBe(false);
   });
 
   it('coalesces concurrent refreshes into a single request', () => {
@@ -171,7 +171,7 @@ describe('AuthService', () => {
       .flush({ detail: 'expired' }, { status: 401, statusText: 'Unauthorized' });
 
     expect(token).toBeNull();
-    expect(service.isAuthenticated()).toBeFalse();
+    expect(service.isAuthenticated()).toBe(false);
   });
 
   it('does not attempt a refresh when there is no refresh token', () => {
@@ -193,14 +193,14 @@ describe('AuthService', () => {
       .flush({ detail: 'revoked' }, { status: 401, statusText: 'Unauthorized' });
 
     // A stale user with a dead token would render a signed-in shell that cannot load anything.
-    expect(service.isAuthenticated()).toBeFalse();
+    expect(service.isAuthenticated()).toBe(false);
   });
 
   it('picks up a permission change reported by /auth/me', () => {
     service.login({ email: 'ops@devicepulse.test', password: 'secret' }).subscribe();
     http.expectOne(`${environment.apiBaseUrl}/auth/login`).flush(authResponse());
 
-    expect(service.has(Permissions.settingsManage)).toBeFalse();
+    expect(service.has(Permissions.settingsManage)).toBe(false);
 
     service.refreshCurrentUser().subscribe();
 
@@ -212,8 +212,8 @@ describe('AuthService', () => {
       permissions: [Permissions.deviceView, Permissions.settingsManage],
     });
 
-    expect(service.has(Permissions.settingsManage)).toBeTrue();
-    expect(service.has(Permissions.alertResolve)).toBeFalse();
+    expect(service.has(Permissions.settingsManage)).toBe(true);
+    expect(service.has(Permissions.alertResolve)).toBe(false);
   });
 
   it('survives corrupt data in storage instead of failing to start', () => {
@@ -227,7 +227,7 @@ describe('AuthService', () => {
 
     const revived = TestBed.inject(AuthService);
 
-    expect(revived.isAuthenticated()).toBeFalse();
+    expect(revived.isAuthenticated()).toBe(false);
     expect(localStorage.getItem('devicepulse.user')).toBeNull();
 
     http = TestBed.inject(HttpTestingController);

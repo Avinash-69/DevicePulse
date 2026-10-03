@@ -106,5 +106,18 @@ Mirror any new permission key in `core/auth/permissions.ts` to match the backend
   signal change would stop being checked and "4 minutes ago" would freeze in place. Moving to
   `OnPush` is a worthwhile optimisation for a signal-based app this size, but it has to be done
   together with converting that pipe to a timer-driven signal, and verified in a browser.
-- **Tests run in headless Chrome with `--no-sandbox`** via the launcher in `karma.conf.js`,
-  which CI containers need. Set `CHROME_BIN` if Chrome is not discovered automatically.
+- **Tests run on Vitest in jsdom, not Karma in a browser.** `ng test` goes through
+  `@angular/build:unit-test`. Karma was removed because it was deprecated in 2023 and pins
+  `chokidar@3` -> `braces`, and no patched `braces` exists at any version. No browser or
+  `CHROME_BIN` is needed. Jasmine-only matchers are therefore unavailable: use `toBe(true)`
+  rather than `toBeTrue()`.
+- **`npm audit` is gated in two tiers, and the reason is specific.** CI fails on
+  `npm audit --omit=dev --audit-level=high`, which is 0 vulnerabilities and covers everything
+  that reaches a browser. It reports, without failing, a full-tree audit that currently shows
+  four high advisories in `braces`/`chokidar` reached only through `karma`. `karma` is still
+  installed because `@angular/build` declares it an *optional peer* for its legacy builder, so
+  npm pulls it in even though nothing here invokes it. There is no patched `braces` to upgrade
+  to and no supported way to refuse an optional peer, so the honest options were a permanently
+  red pipeline or a gate that distinguishes shipped code from dormant tooling. If npm ever
+  gains a way to decline an optional peer, or `@angular/build` drops the karma builder, the
+  advisory tier should go back to blocking.
