@@ -48,7 +48,7 @@ import { RelativeTimePipe } from '../../shared/utils/relative-time.pipe';
 ],
   template: `
     <div class="page">
-      <dp-page-header title="Devices" description="Every registered device and its current health.">
+      <dp-page-header title="Devices">
         <dp-if-permitted [permission]="perm.deviceCreate">
           <button type="button" class="btn btn-primary" (click)="openCreate()">Register device</button>
         </dp-if-permitted>
@@ -280,11 +280,11 @@ import { RelativeTimePipe } from '../../shared/utils/relative-time.pipe';
     `
       .filters {
         display: flex;
-        gap: 0.6rem;
+        gap: var(--sp-2);
         align-items: center;
         flex-wrap: wrap;
-        padding: 0.8rem 1rem;
-        border-bottom: 1px solid var(--border);
+        padding: var(--sp-3) var(--sp-4);
+        border-bottom: 1px solid var(--line);
       }
 
       .filters .field { flex: 0 0 auto; }

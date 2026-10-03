@@ -38,7 +38,6 @@ type Kind = 'deviceType' | 'location';
     <div class="page">
       <dp-page-header
         title="Reference data"
-        description="The device types and locations devices are classified by."
       >
         <label class="checkbox">
           <input type="checkbox" [checked]="includeInactive()" (change)="toggleInactive()" />
@@ -46,7 +45,7 @@ type Kind = 'deviceType' | 'location';
         </label>
       </dp-page-header>
 
-      <div class="two-up">
+      <div class="split split-even">
         <!-- Device types -->
         <section class="card">
           <div class="card-header">
@@ -60,7 +59,7 @@ type Kind = 'deviceType' | 'location';
           </div>
 
           @if (loadingTypes()) {
-            <div class="skeleton" style="height: 180px; margin: 1rem"></div>
+            <div class="skeleton" style="height: 180px; margin: 16px"></div>
           } @else if (deviceTypes().length === 0) {
             <dp-empty
               title="No device types"
@@ -117,7 +116,7 @@ type Kind = 'deviceType' | 'location';
           </div>
 
           @if (loadingLocations()) {
-            <div class="skeleton" style="height: 180px; margin: 1rem"></div>
+            <div class="skeleton" style="height: 180px; margin: 16px"></div>
           } @else if (locations().length === 0) {
             <dp-empty
               title="No locations"
@@ -225,21 +224,14 @@ type Kind = 'deviceType' | 'location';
   changeDetection: ChangeDetectionStrategy.Eager,
   styles: [
     `
-      .two-up {
-        display: grid;
-        gap: 1rem;
-        grid-template-columns: 1fr 1fr;
-        align-items: start;
-      }
 
-      @media (max-width: 1050px) {
-        .two-up { grid-template-columns: 1fr; }
+      @media (max-width: 1200px) {
       }
 
       tr.inactive td { opacity: 0.6; }
 
       .footnote {
-        margin: 1rem 0 0;
+        margin: var(--sp-4) 0 0;
         max-width: 80ch;
         line-height: 1.5;
       }

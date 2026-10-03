@@ -97,10 +97,10 @@ import { ToastsComponent } from '../../layout/toasts.component';
         display: grid;
         place-items: center;
         min-height: 100vh;
-        padding: 2rem 1rem;
+        padding: var(--sp-7) var(--sp-4);
         background:
-          radial-gradient(1100px 520px at 50% -10%, var(--accent-soft), transparent 70%),
-          var(--bg);
+          radial-gradient(1100px 520px at 50% -10%, var(--accent-wash), transparent 70%),
+          var(--canvas);
       }
 
       .theme-toggle {
@@ -116,9 +116,9 @@ import { ToastsComponent } from '../../layout/toasts.component';
 
       .brand {
         display: flex;
-        gap: 0.7rem;
+        gap: var(--sp-3);
         align-items: center;
-        margin-bottom: 1.25rem;
+        margin-bottom: var(--sp-5);
       }
 
       .mark {
@@ -137,18 +137,18 @@ import { ToastsComponent } from '../../layout/toasts.component';
       .brand h1 { font-size: 1.2rem; }
       .brand p { margin: 0; }
 
-      form { box-shadow: var(--shadow); }
+      form { box-shadow: var(--shadow-pop); }
 
       .banner {
-        padding: 0.6rem 0.75rem;
+        padding: var(--sp-2) var(--sp-3);
         font-size: 0.82rem;
         color: var(--danger);
-        background: var(--danger-soft);
-        border-radius: var(--radius);
+        background: var(--danger-wash);
+        border-radius: var(--r-md);
       }
 
       .footnote {
-        margin: 1rem 0 0;
+        margin: var(--sp-4) 0 0;
         text-align: center;
         line-height: 1.5;
       }

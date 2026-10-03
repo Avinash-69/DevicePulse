@@ -38,7 +38,6 @@ import { AbsoluteTimePipe, RelativeTimePipe } from '../../shared/utils/relative-
     <div class="page">
       <dp-page-header
         title="Settings"
-        description="Operational configuration applied at runtime. Changes take effect without a restart and every change is versioned."
       />
 
       @if (loading()) {
@@ -289,16 +288,16 @@ import { AbsoluteTimePipe, RelativeTimePipe } from '../../shared/utils/relative-
 
       .setting {
         display: grid;
-        gap: 0.75rem;
+        gap: var(--sp-3);
         grid-template-columns: minmax(0, 1fr) minmax(170px, 260px) auto;
         align-items: center;
-        padding: 0.85rem 1.1rem;
-        border-bottom: 1px solid var(--border);
+        padding: var(--sp-3) var(--sp-4);
+        border-bottom: 1px solid var(--line);
       }
 
       .setting:last-child { border-bottom: none; }
 
-      @media (max-width: 860px) {
+      @media (max-width: 900px) {
         .setting { grid-template-columns: 1fr; }
       }
 
@@ -309,18 +308,18 @@ import { AbsoluteTimePipe, RelativeTimePipe } from '../../shared/utils/relative-
         font-weight: 500;
       }
 
-      .info p { margin: 0.2rem 0 0; }
+      .info p { margin: var(--sp-1) 0 0; }
 
       .control {
         display: flex;
-        gap: 0.5rem;
+        gap: var(--sp-2);
         align-items: center;
       }
 
       .numeric {
         position: relative;
         display: flex;
-        gap: 0.4rem;
+        gap: var(--sp-2);
         align-items: center;
         flex: 1 1 auto;
       }
@@ -329,7 +328,7 @@ import { AbsoluteTimePipe, RelativeTimePipe } from '../../shared/utils/relative-
 
       .actions {
         display: flex;
-        gap: 0.35rem;
+        gap: var(--sp-1);
         align-items: center;
         justify-content: flex-end;
       }
@@ -340,42 +339,42 @@ import { AbsoluteTimePipe, RelativeTimePipe } from '../../shared/utils/relative-
         font-weight: 600;
         text-transform: uppercase;
         letter-spacing: 0.04em;
-        color: var(--text-muted);
+        color: var(--text-2);
       }
 
       .change {
         display: grid;
-        gap: 0.6rem;
-        padding: 0.75rem 0.9rem;
-        background: var(--surface-2);
-        border: 1px solid var(--border);
-        border-radius: var(--radius);
+        gap: var(--sp-2);
+        padding: var(--sp-3) var(--sp-4);
+        background: var(--panel-2);
+        border: 1px solid var(--line);
+        border-radius: var(--r-md);
       }
 
       .change-values {
         display: flex;
-        gap: 0.6rem;
+        gap: var(--sp-2);
         align-items: center;
         flex-wrap: wrap;
       }
 
       .old {
-        padding: 0.15rem 0.45rem;
-        color: var(--text-muted);
-        background: var(--surface-3);
-        border-radius: var(--radius-sm);
+        padding: var(--sp-1) var(--sp-2);
+        color: var(--text-2);
+        background: var(--panel-3);
+        border-radius: var(--r-sm);
         text-decoration: line-through;
       }
 
       .new {
-        padding: 0.15rem 0.45rem;
+        padding: var(--sp-1) var(--sp-2);
         color: var(--accent);
-        background: var(--accent-soft);
-        border-radius: var(--radius-sm);
+        background: var(--accent-wash);
+        border-radius: var(--r-sm);
         font-weight: 600;
       }
 
-      .arrow { color: var(--text-subtle); }
+      .arrow { color: var(--text-3); }
     `,
   ],
 })

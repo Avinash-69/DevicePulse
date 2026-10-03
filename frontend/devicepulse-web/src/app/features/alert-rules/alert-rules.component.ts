@@ -51,7 +51,6 @@ import { AbsoluteTimePipe, DurationPipe } from '../../shared/utils/relative-time
     <div class="page">
       <dp-page-header
         title="Alert rules"
-        description="The conditions that raise alerts. Changes take effect immediately — no restart or deployment."
       >
         <dp-if-permitted [permission]="perm.alertRuleManage">
           <button type="button" class="btn btn-primary" (click)="openCreate()">New rule</button>
@@ -257,7 +256,7 @@ import { AbsoluteTimePipe, DurationPipe } from '../../shared/utils/relative-time
     `
       .rules {
         display: grid;
-        gap: 1rem;
+        gap: var(--sp-4);
         grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
       }
 
@@ -273,18 +272,18 @@ import { AbsoluteTimePipe, DurationPipe } from '../../shared/utils/relative-time
       .rule h3 { font-size: 0.95rem; }
 
       .condition {
-        margin: 0.6rem 0 0.4rem;
-        padding: 0.45rem 0.6rem;
+        margin: var(--sp-2) 0 var(--sp-2);
+        padding: var(--sp-2) var(--sp-2);
         font-size: 0.82rem;
-        background: var(--surface-3);
-        border-radius: var(--radius);
+        background: var(--panel-3);
+        border-radius: var(--r-md);
       }
 
       .meta {
         display: grid;
-        gap: 0.5rem 1rem;
+        gap: var(--sp-2) var(--sp-4);
         grid-template-columns: 1fr 1fr;
-        margin: 0.8rem 0 0;
+        margin: var(--sp-3) 0 0;
       }
 
       .meta dt {
@@ -292,55 +291,55 @@ import { AbsoluteTimePipe, DurationPipe } from '../../shared/utils/relative-time
         font-weight: 600;
         text-transform: uppercase;
         letter-spacing: 0.04em;
-        color: var(--text-subtle);
+        color: var(--text-3);
       }
 
       .meta dd {
-        margin: 0.1rem 0 0;
+        margin: 2px 0 0;
         font-size: 0.82rem;
       }
 
       .condition-builder {
         margin: 0;
-        padding: 0.8rem;
-        border: 1px solid var(--border);
-        border-radius: var(--radius);
+        padding: var(--sp-3);
+        border: 1px solid var(--line);
+        border-radius: var(--r-md);
       }
 
       .condition-builder legend {
-        padding: 0 0.35rem;
+        padding: 0 var(--sp-1);
         font-size: 0.78rem;
         font-weight: 600;
-        color: var(--text-muted);
+        color: var(--text-2);
       }
 
       .builder-row {
         display: grid;
-        gap: 0.6rem;
+        gap: var(--sp-2);
         grid-template-columns: 1.5fr 0.9fr 0.9fr;
         align-items: end;
       }
 
-      @media (max-width: 560px) {
+      @media (max-width: 600px) {
         .builder-row { grid-template-columns: 1fr; }
       }
 
       .preview {
-        margin: 0.7rem 0 0;
-        padding: 0.45rem 0.6rem;
+        margin: var(--sp-3) 0 0;
+        padding: var(--sp-2) var(--sp-2);
         font-size: 0.8rem;
         color: var(--accent);
-        background: var(--accent-soft);
-        border-radius: var(--radius);
+        background: var(--accent-wash);
+        border-radius: var(--r-md);
       }
 
       .two-col {
         display: grid;
-        gap: 0.8rem;
+        gap: var(--sp-3);
         grid-template-columns: 1fr 1fr;
       }
 
-      @media (max-width: 560px) {
+      @media (max-width: 600px) {
         .two-col { grid-template-columns: 1fr; }
       }
     `,

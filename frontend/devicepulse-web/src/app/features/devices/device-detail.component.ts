@@ -62,7 +62,7 @@ import { AbsoluteTimePipe, RelativeTimePipe } from '../../shared/utils/relative-
   template: `
     <div class="page">
       @if (device(); as d) {
-        <dp-page-header [title]="d.deviceName" [description]="d.deviceTypeName + ' · ' + d.locationName">
+        <dp-page-header [title]="d.deviceName" [context]="d.deviceTypeName + ' · ' + d.locationName">
           <a routerLink="/devices" class="btn btn-sm">Back to devices</a>
 
           <dp-if-permitted [permission]="perm.deviceUpdate">
@@ -164,7 +164,7 @@ import { AbsoluteTimePipe, RelativeTimePipe } from '../../shared/utils/relative-
             </div>
           </section>
 
-          <div class="two-up">
+          <div class="split">
             <!-- Readings -->
             <section class="card">
               <div class="card-header">
@@ -360,20 +360,20 @@ import { AbsoluteTimePipe, RelativeTimePipe } from '../../shared/utils/relative-
   styles: [
     `
       .notice {
-        padding: 0.65rem 0.9rem;
-        margin-bottom: 1rem;
+        padding: var(--sp-3) var(--sp-4);
+        margin-bottom: var(--sp-4);
         font-size: 0.85rem;
         color: var(--warn);
-        background: var(--warn-soft);
-        border-radius: var(--radius);
+        background: var(--warn-wash);
+        border-radius: var(--r-md);
       }
 
       .facts { grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); }
 
       .facts .card-body {
         display: grid;
-        gap: 0.3rem;
-        padding: 0.75rem 0.9rem;
+        gap: var(--sp-1);
+        padding: var(--sp-3) var(--sp-4);
         align-content: start;
         justify-items: start;
       }
@@ -383,17 +383,10 @@ import { AbsoluteTimePipe, RelativeTimePipe } from '../../shared/utils/relative-
         font-weight: 600;
         text-transform: uppercase;
         letter-spacing: 0.04em;
-        color: var(--text-muted);
+        color: var(--text-2);
       }
 
-      .two-up {
-        display: grid;
-        gap: 1rem;
-        grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
-      }
-
-      @media (max-width: 1050px) {
-        .two-up { grid-template-columns: 1fr; }
+      @media (max-width: 1200px) {
       }
 
       .scroll { max-height: 420px; overflow-y: auto; }
@@ -407,24 +400,24 @@ import { AbsoluteTimePipe, RelativeTimePipe } from '../../shared/utils/relative-
       }
 
       .alert-list li {
-        padding: 0.7rem 1.1rem;
-        border-bottom: 1px solid var(--border);
+        padding: var(--sp-3) var(--sp-4);
+        border-bottom: 1px solid var(--line);
       }
 
       .alert-list li:last-child { border-bottom: none; }
 
       .alert-message {
-        margin: 0.35rem 0 0;
+        margin: var(--sp-1) 0 0;
         font-size: 0.82rem;
         line-height: 1.4;
       }
 
       .key-box {
-        padding: 0.7rem 0.8rem;
+        padding: var(--sp-3) var(--sp-3);
         font-size: 0.8rem;
-        background: var(--surface-3);
-        border: 1px solid var(--border);
-        border-radius: var(--radius);
+        background: var(--panel-3);
+        border: 1px solid var(--line);
+        border-radius: var(--r-md);
         word-break: break-all;
         user-select: all;
       }

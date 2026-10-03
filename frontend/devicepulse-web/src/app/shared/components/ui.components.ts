@@ -20,21 +20,35 @@ import { NotificationService } from '../../core/services/notification.service';
  * Collected in one file because each is a handful of lines and a template; one file per
  * five-line component would be more navigation than structure. Anything that grows real
  * behaviour gets its own file.
+ *
+ * Two conventions run through all of them, and they are what keep the screens looking like one
+ * product rather than twelve:
+ *
+ *   - Nothing here draws a box. Enclosure comes from `.panel`, used where it genuinely helps;
+ *     these components contribute type, colour and spacing only.
+ *   - Status is coloured text with a marker, not a filled pill. A table of forty rows with
+ *     forty lozenges reads as decoration competing with the data it is describing.
  */
 
-/** Page title, optional description, and a slot for page-level actions. */
+/**
+ * Page title and page-level actions, on one baseline, over a rule.
+ *
+ * There is deliberately no description input. Twelve pages previously carried a sentence of
+ * explanatory subtitle that nobody reads after the first visit and that costs a line of
+ * vertical space on every screen forever. Where a screen genuinely needs to explain itself, it
+ * does so next to the control that needs explaining.
+ */
 @Component({
   selector: 'dp-page-header',
   standalone: true,
   imports: [],
   template: `
-    <header class="header">
-      <div class="titles">
-        <h1>{{ title() }}</h1>
-        @if (description()) {
-          <p class="muted small">{{ description() }}</p>
-        }
-      </div>
+    <header class="page-head">
+      <h1>{{ title() }}</h1>
+      @if (context()) {
+        <span class="context small">{{ context() }}</span>
+      }
+      <span class="spacer"></span>
       <div class="actions">
         <ng-content />
       </div>
@@ -43,20 +57,22 @@ import { NotificationService } from '../../core/services/notification.service';
   changeDetection: ChangeDetectionStrategy.Eager,
   styles: [
     `
-      .header {
+      .page-head {
         display: flex;
-        gap: 1rem;
-        align-items: flex-start;
-        margin-bottom: 1.25rem;
+        gap: var(--sp-3);
+        align-items: baseline;
         flex-wrap: wrap;
+        padding-bottom: var(--sp-3);
+        margin-bottom: var(--sp-5);
+        border-bottom: 1px solid var(--line);
       }
 
-      .titles { flex: 1 1 320px; }
-      .titles p { margin: 0.2rem 0 0; max-width: 72ch; }
+      /* A short live fact, not prose: "24 devices, 3 offline". */
+      .context { color: var(--text-3); }
 
       .actions {
         display: flex;
-        gap: 0.5rem;
+        gap: var(--sp-2);
         align-items: center;
         flex-wrap: wrap;
       }
@@ -65,122 +81,126 @@ import { NotificationService } from '../../core/services/notification.service';
 })
 export class PageHeaderComponent {
   readonly title = input.required<string>();
-  readonly description = input<string>('');
+  /** A short live fact about the page, shown beside the title. Not a sentence of prose. */
+  readonly context = input<string>('');
 }
 
-/** Headline number with a label, used for the dashboard counters. */
+/**
+ * A readout: a small uppercase label over a large tabular figure.
+ *
+ * Deliberately not a card. Five bordered, rounded, shadowed metric boxes in a row is the most
+ * recognisable template pattern there is; bare readouts separated by space read as an
+ * instrument cluster, and they sit closer together so the figures can actually be compared.
+ */
 @Component({
   selector: 'dp-stat',
   standalone: true,
   imports: [],
   template: `
-    <div class="stat card" [class.accent]="accent()">
+    <div class="readout" [class.readout-lead]="lead()">
       <span class="label">{{ label() }}</span>
-      <span class="value" [style.color]="color() || null">{{ value() }}</span>
+      <span class="readout-value" [style.color]="color() || null">{{ value() }}</span>
       @if (hint()) {
-        <span class="hint subtle small">{{ hint() }}</span>
+        <span class="readout-hint">{{ hint() }}</span>
       }
     </div>
   `,
   changeDetection: ChangeDetectionStrategy.Eager,
-  styles: [
-    `
-      .stat {
-        display: grid;
-        gap: 0.2rem;
-        padding: 0.9rem 1rem;
-        align-content: start;
-      }
-
-      .label {
-        font-size: 0.72rem;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.04em;
-        color: var(--text-muted);
-      }
-
-      .value {
-        font-size: 1.75rem;
-        font-weight: 600;
-        line-height: 1.15;
-        font-variant-numeric: tabular-nums;
-      }
-
-      .accent { border-color: var(--accent); }
-    `,
-  ],
 })
 export class StatComponent {
   readonly label = input.required<string>();
   readonly value = input.required<string | number>();
   readonly hint = input<string>('');
   readonly color = input<string>('');
+  /** The one figure on a screen that answers its central question. At most one per screen. */
+  readonly lead = input(false, { transform: booleanAttribute });
+  /** Retained so existing call sites keep compiling; `lead` is the replacement. */
   readonly accent = input(false, { transform: booleanAttribute });
 }
 
-/** Connectivity badge. Separate from lifecycle, matching the backend's split. */
+/**
+ * Connectivity: is the device talking to us right now?
+ *
+ * A filled marker means reporting, a hollow one means known to be silent, and grey means it has
+ * never reported at all. The three states are distinguishable without reading the word, which
+ * is what lets an operator scan a column of forty rows instead of parsing it.
+ */
 @Component({
   selector: 'dp-connectivity',
   standalone: true,
   imports: [],
   changeDetection: ChangeDetectionStrategy.Eager,
   template: `
-    <span class="badge" [class]="cssClass()">
-      <span class="dot"></span>{{ status() }}
+    <span class="stat-text" [class]="toneClass()">
+      <span class="dot" [class.dot-hollow]="hollow()"></span>{{ status() }}
     </span>
   `,
 })
 export class ConnectivityBadgeComponent {
   readonly status = input.required<ConnectivityStatus>();
 
-  readonly cssClass = computed(() => {
+  readonly toneClass = computed(() => {
     switch (this.status()) {
       case 'Online':
-        return 'badge-ok';
+        return 'stat-ok';
       case 'Offline':
-        return 'badge-danger';
+        return 'stat-danger';
       default:
-        // Unknown is not a problem — it means the device has simply never reported — so it
-        // reads as neutral rather than as a failure.
-        return 'badge-neutral';
+        // Unknown is not a fault -- it means the device has simply never reported -- so it
+        // recedes rather than shouting.
+        return 'stat-quiet';
     }
   });
+
+  readonly hollow = computed(() => this.status() === 'Offline');
 }
 
-/** Lifecycle badge: where the device sits administratively. */
+/**
+ * Lifecycle: where the device sits administratively.
+ *
+ * This is metadata, not health, so it is plain text at secondary weight. A coloured pill here,
+ * next to the connectivity column, made two unrelated things look equally urgent.
+ */
 @Component({
   selector: 'dp-lifecycle',
   standalone: true,
   imports: [],
   changeDetection: ChangeDetectionStrategy.Eager,
-  template: `<span class="badge" [class]="cssClass()">{{ status() }}</span>`,
+  template: `<span class="lifecycle" [class.retired]="status() === 'Retired'">{{ status() }}</span>`,
+  styles: [
+    `
+      .lifecycle {
+        font-size: var(--fs-sm);
+        color: var(--text-2);
+        white-space: nowrap;
+      }
+
+      /* Retired is the one lifecycle state that changes how the whole row should be read. */
+      .retired {
+        color: var(--text-3);
+        text-decoration: line-through;
+        text-decoration-color: var(--line-strong);
+      }
+    `,
+  ],
 })
 export class LifecycleBadgeComponent {
   readonly status = input.required<LifecycleStatus>();
-
-  readonly cssClass = computed(() => {
-    switch (this.status()) {
-      case 'Active':
-        return 'badge-ok';
-      case 'Registered':
-        return 'badge-info';
-      case 'Inactive':
-        return 'badge-warn';
-      default:
-        return 'badge-neutral';
-    }
-  });
 }
 
-/** Severity badge, coloured on the monotonic severity scale. */
+/**
+ * Severity, on the monotonic scale.
+ *
+ * The marker is a square rather than a round dot: squares read as steps on a scale, circles
+ * read as an on/off light, and severity is an ordering.
+ */
 @Component({
   selector: 'dp-severity',
   standalone: true,
   imports: [],
   template: `
     <span class="sev" [style.--sev]="color()">
-      <span class="dot"></span>{{ severity() }}
+      <span class="tick"></span>{{ severity() }}
     </span>
   `,
   changeDetection: ChangeDetectionStrategy.Eager,
@@ -188,15 +208,20 @@ export class LifecycleBadgeComponent {
     `
       .sev {
         display: inline-flex;
-        gap: 0.3rem;
+        gap: var(--sp-2);
         align-items: center;
-        padding: 0.15rem 0.5rem;
-        font-size: 0.72rem;
-        font-weight: 600;
+        font-size: var(--fs-sm);
+        font-weight: var(--fw-medium);
         color: var(--sev);
-        background: color-mix(in srgb, var(--sev) 14%, transparent);
-        border-radius: 999px;
         white-space: nowrap;
+      }
+
+      .tick {
+        width: 6px;
+        height: 6px;
+        background: var(--sev);
+        border-radius: 1px;
+        flex: 0 0 auto;
       }
     `,
   ],
@@ -220,38 +245,42 @@ export function severityColor(severity: AlertSeverity | null): string {
     case 'Info':
       return 'var(--sev-info)';
     default:
-      return 'var(--text-subtle)';
+      return 'var(--text-3)';
   }
 }
 
-/** Alert status badge. */
+/** Alert status: open, claimed by someone, or closed. */
 @Component({
   selector: 'dp-alert-status',
   standalone: true,
   imports: [],
   changeDetection: ChangeDetectionStrategy.Eager,
-  template: `<span class="badge" [class]="cssClass()">{{ status() }}</span>`,
+  template: `
+    <span class="stat-text" [class]="toneClass()">
+      <span class="dot" [class.dot-hollow]="status() === 'Acknowledged'"></span>{{ status() }}
+    </span>
+  `,
 })
 export class AlertStatusBadgeComponent {
   readonly status = input.required<AlertStatus>();
 
-  readonly cssClass = computed(() => {
+  readonly toneClass = computed(() => {
     switch (this.status()) {
       case 'Open':
-        return 'badge-danger';
+        return 'stat-danger';
       case 'Acknowledged':
-        return 'badge-warn';
+        return 'stat-warn';
       default:
-        return 'badge-ok';
+        return 'stat-quiet';
     }
   });
 }
 
 /**
- * Pagination controls bound to the API's PagedResult shape.
+ * Pagination bound to the API's PagedResult shape.
  *
- * Shows the row range rather than only page numbers: "41–60 of 237" answers "how much is
- * there" in a way that "page 3 of 12" does not.
+ * Shows the row range rather than only page numbers: "41-60 of 237" answers "how much is
+ * there", which "page 3 of 12" does not.
  */
 @Component({
   selector: 'dp-paginator',
@@ -260,38 +289,40 @@ export class AlertStatusBadgeComponent {
   template: `
     @if (totalCount() > 0) {
       <div class="paginator">
-        <span class="muted small">
+        <span class="small text-2 num nowrap">
           {{ firstRow() }}&ndash;{{ lastRow() }} of {{ totalCount() }}
         </span>
 
         <span class="spacer"></span>
 
-        <label class="muted small size">
+        <label class="size small text-3">
           Rows
-          <select [value]="pageSize()" (change)="changeSize($event)">
+          <select [value]="pageSize()" (change)="changeSize($event)" aria-label="Rows per page">
             @for (size of sizes; track size) {
               <option [value]="size">{{ size }}</option>
             }
           </select>
         </label>
 
-        <div class="row">
+        <div class="row row-tight">
           <button
             type="button"
             class="btn btn-sm"
             [disabled]="page() <= 1"
             (click)="pageChange.emit(page() - 1)"
+            aria-label="Previous page"
           >
-            Previous
+            Prev
           </button>
 
-          <span class="muted small nowrap">Page {{ page() }} of {{ totalPages() || 1 }}</span>
+          <span class="small text-3 num nowrap">{{ page() }} / {{ totalPages() || 1 }}</span>
 
           <button
             type="button"
             class="btn btn-sm"
             [disabled]="page() >= totalPages()"
             (click)="pageChange.emit(page() + 1)"
+            aria-label="Next page"
           >
             Next
           </button>
@@ -304,15 +335,26 @@ export class AlertStatusBadgeComponent {
     `
       .paginator {
         display: flex;
-        gap: 0.75rem;
+        gap: var(--sp-3);
         align-items: center;
         flex-wrap: wrap;
-        padding: 0.7rem 1rem;
-        border-top: 1px solid var(--border);
+        padding: var(--sp-2) var(--sp-3);
+        border-top: 1px solid var(--line);
       }
 
-      .size { display: inline-flex; gap: 0.4rem; align-items: center; }
-      .size select { width: auto; padding: 0.2rem 0.4rem; font-size: 0.8rem; }
+      .size {
+        display: inline-flex;
+        gap: var(--sp-2);
+        align-items: center;
+      }
+
+      .size select {
+        width: auto;
+        height: 26px;
+        padding: 0 var(--sp-5) 0 var(--sp-2);
+        font-size: var(--fs-meta);
+        background-position: calc(100% - 13px) 11px, calc(100% - 9px) 11px;
+      }
     `,
   ],
 })
@@ -338,7 +380,12 @@ export class PaginatorComponent {
   }
 }
 
-/** Shown in place of a table body while the first load is in flight. */
+/**
+ * Shown in place of a table body while the first load is in flight.
+ *
+ * The placeholders use varied widths so the block reads as lines of text rather than as a set
+ * of identical bars, and they match the real row height so content does not jump when it lands.
+ */
 @Component({
   selector: 'dp-loading-rows',
   standalone: true,
@@ -346,20 +393,30 @@ export class PaginatorComponent {
   template: `
     <div class="rows" [attr.aria-busy]="true" aria-label="Loading">
       @for (row of placeholders(); track $index) {
-        <div class="skeleton" [style.height.px]="16"></div>
+        <div class="skeleton" [style.width.%]="widthFor($index)"></div>
       }
     </div>
   `,
   changeDetection: ChangeDetectionStrategy.Eager,
   styles: [
     `
-      .rows { display: grid; gap: 0.85rem; padding: 1.1rem; }
+      .rows {
+        display: grid;
+        gap: var(--sp-4);
+        padding: var(--sp-4) var(--sp-3);
+      }
+
+      .skeleton { height: 13px; }
     `,
   ],
 })
 export class LoadingRowsComponent {
   readonly count = input(5, { transform: numberAttribute });
   readonly placeholders = computed(() => Array.from({ length: this.count() }));
+
+  widthFor(index: number): number {
+    return [92, 68, 84, 74, 88, 62][index % 6];
+  }
 }
 
 /** Message shown when a list has no rows, with a slot for a call to action. */
@@ -372,9 +429,11 @@ export class LoadingRowsComponent {
     <div class="empty-state">
       <h3>{{ title() }}</h3>
       @if (message()) {
-        <p class="muted small">{{ message() }}</p>
+        <p>{{ message() }}</p>
       }
-      <ng-content />
+      <div class="row">
+        <ng-content />
+      </div>
     </div>
   `,
 })
@@ -388,6 +447,9 @@ export class EmptyStateComponent {
  *
  * Closes on Escape and on a backdrop click, because a dialog that traps the user is worse than
  * no dialog. The host sets `[open]`; the component only reports that the user asked to close.
+ *
+ * The backdrop is a flat scrim, not a blur. A blurred backdrop is the glassmorphism tell, and
+ * it costs a compositing pass on every frame to communicate nothing the scrim does not.
  */
 @Component({
   selector: 'dp-modal',
@@ -402,17 +464,17 @@ export class EmptyStateComponent {
         (keydown.escape)="closed.emit()"
       >
         <div
-          class="panel card"
+          class="panel sheet"
           role="dialog"
           aria-modal="true"
           [attr.aria-label]="title()"
           [style.max-width]="width()"
           (click)="$event.stopPropagation()"
         >
-          <div class="card-header">
+          <div class="sheet-head">
             <h2>{{ title() }}</h2>
             <span class="spacer"></span>
-            <button type="button" class="btn btn-ghost btn-icon" aria-label="Close" (click)="closed.emit()">
+            <button type="button" class="btn btn-sm btn-icon btn-ghost" aria-label="Close" (click)="closed.emit()">
               &times;
             </button>
           </div>
@@ -431,20 +493,36 @@ export class EmptyStateComponent {
         z-index: 100;
         display: grid;
         place-items: start center;
-        padding: 4vh 1rem;
+        padding: 6vh var(--sp-4) var(--sp-6);
         overflow-y: auto;
-        background: rgb(8 12 16 / 55%);
-        backdrop-filter: blur(2px);
+        background: rgb(12 15 19 / 50%);
       }
 
-      .panel {
+      .sheet {
         width: 100%;
-        box-shadow: var(--shadow-lg);
-        animation: rise 0.14s ease-out;
+        border-radius: var(--r-lg);
+        box-shadow: var(--shadow-modal);
+        animation: rise 0.12s ease-out;
       }
+
+      /* Sticky so the title and the close button stay reachable in a long form. */
+      .sheet-head {
+        position: sticky;
+        top: 0;
+        z-index: 1;
+        display: flex;
+        gap: var(--sp-3);
+        align-items: center;
+        padding: var(--sp-3) var(--sp-4);
+        background: var(--panel);
+        border-bottom: 1px solid var(--line);
+        border-radius: var(--r-lg) var(--r-lg) 0 0;
+      }
+
+      .sheet-head h2 { font-size: var(--fs-lg); }
 
       @keyframes rise {
-        from { transform: translateY(8px); opacity: 0; }
+        from { transform: translateY(6px); opacity: 0; }
         to { transform: translateY(0); opacity: 1; }
       }
     `,

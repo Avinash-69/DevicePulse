@@ -38,7 +38,6 @@ import { AbsoluteTimePipe, RelativeTimePipe } from '../../shared/utils/relative-
     <div class="page">
       <dp-page-header
         title="Audit log"
-        description="Who changed what, when, and from what value. Read-only by design."
       />
 
       <div class="card">
@@ -160,11 +159,11 @@ import { AbsoluteTimePipe, RelativeTimePipe } from '../../shared/utils/relative-
     `
       .filters {
         display: flex;
-        gap: 0.6rem;
+        gap: var(--sp-2);
         align-items: center;
         flex-wrap: wrap;
-        padding: 0.8rem 1rem;
-        border-bottom: 1px solid var(--border);
+        padding: var(--sp-3) var(--sp-4);
+        border-bottom: 1px solid var(--line);
       }
 
       .filters .field select,
@@ -174,15 +173,15 @@ import { AbsoluteTimePipe, RelativeTimePipe } from '../../shared/utils/relative-
       .entries { display: grid; }
 
       .entry {
-        padding: 0.8rem 1.1rem;
-        border-bottom: 1px solid var(--border);
+        padding: var(--sp-3) var(--sp-4);
+        border-bottom: 1px solid var(--line);
       }
 
       .entry:last-child { border-bottom: none; }
 
       .entry-head {
         display: flex;
-        gap: 0.55rem;
+        gap: var(--sp-2);
         align-items: baseline;
         flex-wrap: wrap;
       }
@@ -194,35 +193,35 @@ import { AbsoluteTimePipe, RelativeTimePipe } from '../../shared/utils/relative-
 
       .entry-who {
         display: flex;
-        gap: 0.7rem;
+        gap: var(--sp-3);
         flex-wrap: wrap;
-        margin-top: 0.2rem;
+        margin-top: var(--sp-1);
       }
 
       .diff {
         width: auto;
-        margin-top: 0.55rem;
+        margin-top: var(--sp-2);
         border-collapse: collapse;
         font-size: 0.78rem;
       }
 
       .diff th {
-        padding: 0.15rem 0.6rem 0.15rem 0;
+        padding: var(--sp-1) var(--sp-2) var(--sp-1) 0;
         text-align: left;
         font-weight: 500;
-        color: var(--text-muted);
+        color: var(--text-2);
         white-space: nowrap;
       }
 
-      .diff td { padding: 0.15rem 0.3rem; }
+      .diff td { padding: var(--sp-1) var(--sp-1); }
 
       .old {
-        color: var(--text-muted);
+        color: var(--text-2);
         text-decoration: line-through;
       }
 
       .new { color: var(--accent); font-weight: 600; }
-      .arrow { color: var(--text-subtle); }
+      .arrow { color: var(--text-3); }
     `,
   ],
 })

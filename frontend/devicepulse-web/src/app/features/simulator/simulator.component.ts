@@ -46,10 +46,9 @@ import {
     <div class="page">
       <dp-page-header
         title="Simulator"
-        description="Generate realistic telemetry for a fleet of virtual devices, and test the ingestion and alerting pipeline."
       />
 
-      <div class="two-up">
+      <div class="split">
         <div class="stack">
           <!-- Command builder -->
           <section class="card">
@@ -329,37 +328,30 @@ import {
   changeDetection: ChangeDetectionStrategy.Eager,
   styles: [
     `
-      .two-up {
-        display: grid;
-        gap: 1rem;
-        grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
-        align-items: start;
-      }
 
-      @media (max-width: 1100px) {
-        .two-up { grid-template-columns: 1fr; }
+      @media (max-width: 1200px) {
       }
 
       .grid-two {
         display: grid;
-        gap: 0.75rem;
+        gap: var(--sp-3);
         grid-template-columns: 1fr 1fr;
       }
 
-      @media (max-width: 560px) {
+      @media (max-width: 600px) {
         .grid-two { grid-template-columns: 1fr; }
       }
 
       .command {
         margin: 0;
-        padding: 0.75rem 0.85rem;
+        padding: var(--sp-3) var(--sp-3);
         font-family: var(--font-mono);
         font-size: 0.78rem;
         line-height: 1.6;
         color: var(--text);
-        background: var(--surface-3);
-        border: 1px solid var(--border);
-        border-radius: var(--radius);
+        background: var(--panel-3);
+        border: 1px solid var(--line);
+        border-radius: var(--r-md);
         white-space: pre-wrap;
         word-break: break-word;
       }
@@ -367,15 +359,15 @@ import {
       details summary {
         cursor: pointer;
         font-size: 0.82rem;
-        color: var(--text-muted);
-        margin-bottom: 0.5rem;
+        color: var(--text-2);
+        margin-bottom: var(--sp-2);
       }
 
       .state {
         display: grid;
-        gap: 0.6rem 1rem;
+        gap: var(--sp-2) var(--sp-4);
         grid-template-columns: 1fr 1fr;
-        margin: 0 0 0.8rem;
+        margin: 0 0 var(--sp-3);
       }
 
       .state dt {
@@ -383,34 +375,34 @@ import {
         font-weight: 600;
         text-transform: uppercase;
         letter-spacing: 0.04em;
-        color: var(--text-subtle);
+        color: var(--text-3);
       }
 
       .state dd {
-        margin: 0.1rem 0 0;
+        margin: 2px 0 0;
         font-size: 1.15rem;
         font-weight: 600;
       }
 
       .warn-note {
         margin: 0;
-        padding: 0.5rem 0.65rem;
+        padding: var(--sp-2) var(--sp-3);
         color: var(--warn);
-        background: var(--warn-soft);
-        border-radius: var(--radius);
+        background: var(--warn-wash);
+        border-radius: var(--r-md);
       }
 
       .result {
-        padding: 0.55rem 0.7rem;
+        padding: var(--sp-2) var(--sp-3);
         font-size: 0.82rem;
         color: var(--ok);
-        background: var(--ok-soft);
-        border-radius: var(--radius);
+        background: var(--ok-wash);
+        border-radius: var(--r-md);
       }
 
       .result.duplicate {
         color: var(--info);
-        background: var(--info-soft);
+        background: var(--info-wash);
       }
     `,
   ],

@@ -39,7 +39,7 @@ import { NotificationService } from '../core/services/notification.service';
         right: 1rem;
         z-index: 200;
         display: grid;
-        gap: 0.5rem;
+        gap: var(--sp-2);
         width: min(380px, calc(100vw - 2rem));
         /* The container must not swallow clicks on the page behind it; each toast re-enables
            pointer events for itself. */
@@ -48,11 +48,11 @@ import { NotificationService } from '../core/services/notification.service';
 
       .toast {
         display: flex;
-        gap: 0.5rem;
+        gap: var(--sp-2);
         align-items: flex-start;
-        padding: 0.7rem 0.75rem 0.7rem 0.9rem;
-        border-left: 3px solid var(--neutral);
-        box-shadow: var(--shadow-lg);
+        padding: var(--sp-3) var(--sp-3) var(--sp-3) var(--sp-4);
+        border-left: 3px solid var(--quiet);
+        box-shadow: var(--shadow-modal);
         pointer-events: auto;
         animation: slide-in 0.16s ease-out;
       }
@@ -75,7 +75,7 @@ import { NotificationService } from '../core/services/notification.service';
       }
 
       .detail {
-        margin: 0.25rem 0 0;
+        margin: var(--sp-1) 0 0;
         font-size: 0.72rem;
         word-break: break-all;
       }

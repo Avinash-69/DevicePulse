@@ -14,9 +14,9 @@ import { PageHeaderComponent } from '../../shared/components/ui.components';
   imports: [ReactiveFormsModule, PageHeaderComponent],
   template: `
     <div class="page">
-      <dp-page-header title="Your account" description="Your roles, your effective permissions, and your password." />
+      <dp-page-header title="Your account" />
 
-      <div class="two-up">
+      <div class="split split-even">
         <section class="card">
           <div class="card-header"><h2>Change password</h2></div>
 
@@ -113,30 +113,23 @@ import { PageHeaderComponent } from '../../shared/components/ui.components';
   changeDetection: ChangeDetectionStrategy.Eager,
   styles: [
     `
-      .two-up {
-        display: grid;
-        gap: 1rem;
-        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-        align-items: start;
-      }
 
-      @media (max-width: 950px) {
-        .two-up { grid-template-columns: 1fr; }
+      @media (max-width: 900px) {
       }
 
       .fact-label {
         display: block;
-        margin-bottom: 0.3rem;
+        margin-bottom: var(--sp-1);
         font-size: 0.7rem;
         font-weight: 600;
         text-transform: uppercase;
         letter-spacing: 0.04em;
-        color: var(--text-muted);
+        color: var(--text-2);
       }
 
       .chips {
         display: flex;
-        gap: 0.3rem;
+        gap: var(--sp-1);
         flex-wrap: wrap;
       }
 

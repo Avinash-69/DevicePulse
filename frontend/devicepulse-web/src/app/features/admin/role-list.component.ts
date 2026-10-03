@@ -39,7 +39,6 @@ import {
     <div class="page">
       <dp-page-header
         title="Roles"
-        description="Roles bundle permissions. Users get their permissions from the roles they hold."
       >
         <dp-if-permitted [permission]="perm.roleManage">
           <button type="button" class="btn btn-primary" (click)="openCreate()">New role</button>
@@ -258,7 +257,7 @@ import {
     `
       .roles {
         display: grid;
-        gap: 1rem;
+        gap: var(--sp-4);
         grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
       }
 
@@ -266,17 +265,17 @@ import {
       .role .card-body { flex: 1 1 auto; }
       .role h3 { font-size: 0.95rem; }
 
-      .desc { margin: 0.4rem 0 0; }
+      .desc { margin: var(--sp-2) 0 0; }
 
       .perm-count {
-        margin: 0.7rem 0 0.5rem;
+        margin: var(--sp-3) 0 var(--sp-2);
         font-size: 0.82rem;
-        color: var(--text-muted);
+        color: var(--text-2);
       }
 
       .perm-preview {
         display: flex;
-        gap: 0.25rem;
+        gap: var(--sp-1);
         flex-wrap: wrap;
         align-items: center;
       }
@@ -285,54 +284,54 @@ import {
 
       .notice {
         margin: 0;
-        padding: 0.55rem 0.7rem;
+        padding: var(--sp-2) var(--sp-3);
         color: var(--warn);
-        background: var(--warn-soft);
-        border-radius: var(--radius);
+        background: var(--warn-wash);
+        border-radius: var(--r-md);
       }
 
       .catalog {
         display: grid;
-        gap: 0.9rem;
+        gap: var(--sp-4);
         max-height: 50vh;
         overflow-y: auto;
-        padding-right: 0.3rem;
+        padding-right: var(--sp-1);
       }
 
       fieldset {
         margin: 0;
-        padding: 0.6rem 0.75rem 0.75rem;
-        border: 1px solid var(--border);
-        border-radius: var(--radius);
+        padding: var(--sp-2) var(--sp-3) var(--sp-3);
+        border: 1px solid var(--line);
+        border-radius: var(--r-md);
       }
 
       legend {
         display: flex;
-        gap: 0.4rem;
+        gap: var(--sp-2);
         align-items: center;
-        padding: 0 0.35rem;
+        padding: 0 var(--sp-1);
         font-size: 0.78rem;
         font-weight: 600;
-        color: var(--text-muted);
+        color: var(--text-2);
       }
 
       .perm {
         display: grid;
         grid-template-columns: 16px 1fr;
-        gap: 0.55rem;
+        gap: var(--sp-2);
         align-items: start;
-        padding: 0.35rem 0;
+        padding: var(--sp-1) 0;
         cursor: pointer;
       }
 
       .perm input {
-        margin-top: 0.2rem;
+        margin-top: var(--sp-1);
         width: 15px;
         height: 15px;
         accent-color: var(--accent);
       }
 
-      .perm-body { display: grid; gap: 0.1rem; }
+      .perm-body { display: grid; gap: 2px; }
       .perm-name { font-size: 0.85rem; }
       .perm-key { font-size: 0.7rem; }
       .perm-desc { line-height: 1.35; }

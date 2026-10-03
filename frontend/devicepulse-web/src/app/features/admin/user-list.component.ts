@@ -41,7 +41,7 @@ import { AbsoluteTimePipe, RelativeTimePipe } from '../../shared/utils/relative-
 ],
   template: `
     <div class="page">
-      <dp-page-header title="Users" description="Accounts and the roles they hold.">
+      <dp-page-header title="Users">
         <dp-if-permitted [permission]="perm.userCreate">
           <button type="button" class="btn btn-primary" (click)="openCreate()">Add user</button>
         </dp-if-permitted>
@@ -293,11 +293,11 @@ import { AbsoluteTimePipe, RelativeTimePipe } from '../../shared/utils/relative-
     `
       .filters {
         display: flex;
-        gap: 0.6rem;
+        gap: var(--sp-2);
         align-items: center;
         flex-wrap: wrap;
-        padding: 0.8rem 1rem;
-        border-bottom: 1px solid var(--border);
+        padding: var(--sp-3) var(--sp-4);
+        border-bottom: 1px solid var(--line);
       }
 
       .filters .field select { width: auto; min-width: 140px; }
@@ -305,21 +305,21 @@ import { AbsoluteTimePipe, RelativeTimePipe } from '../../shared/utils/relative-
 
       .role-chips {
         display: flex;
-        gap: 0.25rem;
+        gap: var(--sp-1);
         flex-wrap: wrap;
       }
 
       .role-picker {
         display: grid;
-        gap: 0.4rem;
-        padding: 0.6rem 0.7rem;
-        border: 1px solid var(--border);
-        border-radius: var(--radius);
+        gap: var(--sp-2);
+        padding: var(--sp-2) var(--sp-3);
+        border: 1px solid var(--line);
+        border-radius: var(--r-md);
       }
 
       .checkbox.disabled { opacity: 0.55; }
 
-      td.right .btn + .btn { margin-left: 0.25rem; }
+      td.right .btn + .btn { margin-left: var(--sp-1); }
     `,
   ],
 })

@@ -2,7 +2,7 @@ import { Component, OnDestroy, OnInit, computed, inject, signal, ChangeDetection
 import { RouterLink } from '@angular/router';
 
 import { ApiService } from '../../core/services/api.service';
-import { DashboardSummary } from '../../core/models/api.models';
+import { DashboardSummary, DeviceHealthRow } from '../../core/models/api.models';
 import { environment } from '../../../environments/environment';
 import {
   BarChartComponent,
@@ -32,6 +32,21 @@ import { RelativeTimePipe } from '../../shared/utils/relative-time.pipe';
  * the data right over plain HTTP first, and introduce SignalR when there is a reason beyond
  * novelty. The interval is a few seconds longer than a device's reporting interval, so the
  * numbers move without hammering the API.
+ *
+ * The layout is ordered by what an operator does, not by what is easiest to arrange. Opening
+ * this page asks one question — is anything wrong, and what do I do about it — so the screen
+ * answers in that order:
+ *
+ *   1. A verdict. One line that says whether the fleet is healthy, and a single display-size
+ *      figure for the number that would make it not healthy.
+ *   2. The work. The devices needing attention, full width, directly under the verdict, with
+ *      failing rows tinted so they can be found without reading every cell.
+ *   3. The context. Trends and distributions, below and visually quieter, for when the first
+ *      two have raised a question worth investigating.
+ *
+ * What it deliberately is not: a row of five equal-weight metric cards above two charts above a
+ * recent-activity feed. In that arrangement "Devices: 24" shouts exactly as loudly as
+ * "Critical: 3", which leaves the operator to do the triage the screen should have done.
  */
 @Component({
   selector: 'dp-dashboard',
@@ -51,16 +66,7 @@ import { RelativeTimePipe } from '../../shared/utils/relative-time.pipe';
 ],
   template: `
     <div class="page">
-      <dp-page-header
-        title="Dashboard"
-        description="Fleet health, open alerts and recent telemetry."
-      >
-        <span class="muted small">
-          @if (summary()) {
-            Updated {{ summary()!.generatedAt | relativeTime }}
-          }
-        </span>
-
+      <dp-page-header title="Fleet" [context]="updatedLabel()">
         <button type="button" class="btn btn-sm" (click)="load(true)" [disabled]="refreshing()">
           @if (refreshing()) {
             <span class="spinner"></span>
@@ -70,210 +76,281 @@ import { RelativeTimePipe } from '../../shared/utils/relative-time.pipe';
       </dp-page-header>
 
       @if (loading()) {
-        <div class="grid grid-auto">
-          @for (i of [1, 2, 3, 4, 5]; track i) {
-            <div class="skeleton" style="height: 86px; border-radius: 12px"></div>
-          }
-        </div>
-      } @else {
-        @if (summary(); as data) {
         <div class="stack-lg">
-          <!-- Counters -->
-          <section class="grid grid-auto">
-            <dp-stat label="Devices" [value]="data.devices.total" [hint]="data.devices.retired + ' retired'" />
-            <dp-stat label="Online" [value]="data.devices.online" color="var(--ok)" [hint]="onlineShare()" />
-            <dp-stat label="Offline" [value]="data.devices.offline" color="var(--danger)" hint="no recent telemetry" />
-            <dp-stat label="Open alerts" [value]="data.alerts.open" color="var(--warn)" [hint]="data.alerts.acknowledged + ' acknowledged'" />
-            <dp-stat
-              label="Critical"
-              [value]="data.alerts.critical"
-              [color]="data.alerts.critical > 0 ? 'var(--sev-critical)' : ''"
-              [accent]="data.alerts.critical > 0"
-              [hint]="data.alerts.resolvedToday + ' resolved today'"
-            />
-          </section>
-
-          <!-- Trend + severity -->
-          <section class="two-up">
-            <div class="card">
-              <div class="card-header">
-                <h2>Temperature, last {{ data.trendHours }}h</h2>
-                <span class="spacer"></span>
-                <span class="muted small">hourly average across the fleet</span>
-              </div>
-              <div class="card-body">
-                <dp-trend-chart [points]="data.temperatureTrend" unit="°C" />
-              </div>
+          <div class="skeleton" style="height: 64px"></div>
+          <div class="skeleton" style="height: 220px"></div>
+        </div>
+      } @else if (summary(); as data) {
+        <div class="stack-lg">
+          <!-- 1. The verdict ------------------------------------------------------------- -->
+          <section class="verdict" [class]="verdictTone()">
+            <div class="verdict-line">
+              <span class="dot"></span>
+              <p class="verdict-text">{{ verdict() }}</p>
             </div>
 
-            <div class="card">
-              <div class="card-header"><h2>Unresolved by severity</h2></div>
-              <div class="card-body">
-                <dp-donut
-                  [slices]="severitySlices()"
-                  centreLabel="unresolved"
-                  emptyMessage="No unresolved alerts. Everything is quiet."
-                />
-              </div>
+            <div class="readouts">
+              <dp-stat
+                label="Open alerts"
+                [value]="data.alerts.open"
+                [lead]="true"
+                [color]="data.alerts.open > 0 ? 'var(--danger)' : ''"
+                [hint]="data.alerts.acknowledged + ' acknowledged'"
+              />
+              <dp-stat
+                label="Critical"
+                [value]="data.alerts.critical"
+                [color]="data.alerts.critical > 0 ? 'var(--sev-critical)' : ''"
+                [hint]="data.alerts.resolvedToday + ' resolved today'"
+              />
+              <dp-stat
+                label="Offline"
+                [value]="data.devices.offline"
+                [color]="data.devices.offline > 0 ? 'var(--danger)' : ''"
+                hint="no recent telemetry"
+              />
+              <dp-stat label="Reporting" [value]="data.devices.online" [hint]="onlineShare()" />
+              <dp-stat
+                label="Devices"
+                [value]="data.devices.total"
+                [hint]="data.devices.retired + ' retired'"
+              />
             </div>
           </section>
 
-          <!-- Needs attention -->
-          <section class="card">
-            <div class="card-header">
+          <!-- 2. The work --------------------------------------------------------------- -->
+          <section class="section">
+            <div class="section-head">
               <h2>Needs attention</h2>
+              <span class="label">{{ data.devicesNeedingAttention.length }}</span>
               <span class="spacer"></span>
               <a routerLink="/devices" class="small">All devices</a>
             </div>
 
             @if (data.devicesNeedingAttention.length === 0) {
-              <dp-empty
-                title="Nothing needs attention"
-                message="Every device is reporting and no alerts are open."
-              />
+              <div class="panel">
+                <dp-empty
+                  title="Nothing needs attention"
+                  message="Every device is reporting and no alerts are open."
+                />
+              </div>
             } @else {
-              <div class="table-wrap">
-                <table class="data">
-                  <thead>
-                    <tr>
-                      <th>Device</th>
-                      <th>Location</th>
-                      <th>Connectivity</th>
-                      <th>Last seen</th>
-                      <th>Temp</th>
-                      <th>Battery</th>
-                      <th>Alerts</th>
-                      <th>Worst</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    @for (row of data.devicesNeedingAttention; track row.deviceId) {
+              <div class="panel">
+                <div class="table-wrap">
+                  <table class="data">
+                    <thead>
                       <tr>
-                        <td>
-                          <a [routerLink]="['/devices', row.deviceId]">{{ row.deviceName }}</a>
-                          <div class="mono subtle small">{{ row.deviceCode }}</div>
-                        </td>
-                        <td class="muted">{{ row.locationName }}</td>
-                        <td><dp-connectivity [status]="row.connectivityStatus" /></td>
-                        <td class="muted small nowrap">
-                          {{ row.lastSeenAt ? (row.lastSeenAt | relativeTime) : 'never' }}
-                        </td>
-                        <td class="mono nowrap">
-                          {{ row.lastTemperature !== null ? row.lastTemperature + '°C' : '—' }}
-                        </td>
-                        <td><dp-battery [level]="row.lastBattery" /></td>
-                        <td class="mono">{{ row.openAlertCount || '—' }}</td>
-                        <td>
-                          @if (row.highestOpenSeverity) {
-                            <dp-severity [severity]="row.highestOpenSeverity" />
-                          } @else {
-                            <span class="subtle">—</span>
-                          }
-                        </td>
+                        <th>Device</th>
+                        <th>Location</th>
+                        <th>Connectivity</th>
+                        <th>Last seen</th>
+                        <th class="right">Temp</th>
+                        <th>Battery</th>
+                        <th class="right">Alerts</th>
+                        <th>Worst</th>
                       </tr>
-                    }
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      @for (row of data.devicesNeedingAttention; track row.deviceId) {
+                        <tr [class]="rowTone(row)">
+                          <td class="primary">
+                            <a [routerLink]="['/devices', row.deviceId]">{{ row.deviceName }}</a>
+                            <div class="mono text-3 small">{{ row.deviceCode }}</div>
+                          </td>
+                          <td class="text-2">{{ row.locationName }}</td>
+                          <td><dp-connectivity [status]="row.connectivityStatus" /></td>
+                          <td class="text-2 small nowrap">
+                            {{ row.lastSeenAt ? (row.lastSeenAt | relativeTime) : 'never' }}
+                          </td>
+                          <td class="num right nowrap">
+                            {{ row.lastTemperature !== null ? row.lastTemperature + '°C' : '—' }}
+                          </td>
+                          <td><dp-battery [level]="row.lastBattery" /></td>
+                          <td class="num right">{{ row.openAlertCount || '—' }}</td>
+                          <td>
+                            @if (row.highestOpenSeverity) {
+                              <dp-severity [severity]="row.highestOpenSeverity" />
+                            } @else {
+                              <span class="text-3">—</span>
+                            }
+                          </td>
+                        </tr>
+                      }
+                    </tbody>
+                  </table>
+                </div>
               </div>
             }
           </section>
 
-          <!-- Distribution + recent alerts -->
-          <section class="two-up">
-            <div class="stack">
-              <div class="card">
-                <div class="card-header">
-                  <h2>Devices by location</h2>
+          <!-- 3. The context ------------------------------------------------------------ -->
+          <section class="section context">
+            <div class="section-head">
+              <h2>Context</h2>
+              <span class="label">last {{ data.trendHours }} hours</span>
+            </div>
+
+            <div class="split">
+              <div class="panel">
+                <div class="panel-head">
+                  <h3>Fleet temperature</h3>
                   <span class="spacer"></span>
-                  <a routerLink="/reference-data" class="small">Manage</a>
+                  <span class="label">hourly average</span>
                 </div>
-                <div class="card-body">
-                  <dp-bar-chart [data]="locationBars()" secondaryLabel="online" />
+                <div class="panel-body">
+                  <dp-trend-chart [points]="data.temperatureTrend" unit="°C" />
                 </div>
               </div>
 
-              <div class="card">
-                <div class="card-header"><h2>Devices by type</h2></div>
-                <div class="card-body">
-                  <dp-bar-chart [data]="typeBars()" />
+              <div class="panel">
+                <div class="panel-head">
+                  <h3>Unresolved by severity</h3>
+                </div>
+                <div class="panel-body">
+                  <dp-donut
+                    [slices]="severitySlices()"
+                    centreLabel="unresolved"
+                    emptyMessage="No unresolved alerts."
+                  />
                 </div>
               </div>
             </div>
 
-            <div class="card">
-              <div class="card-header">
-                <h2>Recent alerts</h2>
-                <span class="spacer"></span>
-                <a routerLink="/alerts" class="small">All alerts</a>
+            <div class="split">
+              <div class="panel">
+                <div class="panel-head">
+                  <h3>Recent alerts</h3>
+                  <span class="spacer"></span>
+                  <a routerLink="/alerts" class="small">All alerts</a>
+                </div>
+
+                @if (data.recentAlerts.length === 0) {
+                  <dp-empty title="No alerts yet" message="Alerts appear here as rules are triggered." />
+                } @else {
+                  <ul class="feed">
+                    @for (alert of data.recentAlerts; track alert.alertId) {
+                      <li>
+                        <span class="rail" [style.background]="colorFor(alert.severity)"></span>
+                        <div class="feed-body">
+                          <p class="feed-message">{{ alert.message }}</p>
+                          <p class="feed-meta">
+                            <dp-severity [severity]="alert.severity" />
+                            <span class="text-3">{{ alert.status }}</span>
+                            <span class="text-3">&middot;</span>
+                            <span class="text-3">{{ alert.createdAt | relativeTime }}</span>
+                          </p>
+                        </div>
+                      </li>
+                    }
+                  </ul>
+                }
               </div>
 
-              @if (data.recentAlerts.length === 0) {
-                <dp-empty title="No alerts yet" message="Alerts appear here as rules are triggered." />
-              } @else {
-                <ul class="alert-feed">
-                  @for (alert of data.recentAlerts; track alert.alertId) {
-                    <li>
-                      <span class="bar" [style.background]="colorFor(alert.severity)"></span>
-                      <div class="feed-body">
-                        <p class="feed-message">{{ alert.message }}</p>
-                        <p class="feed-meta subtle small">
-                          <dp-severity [severity]="alert.severity" />
-                          <span>{{ alert.status }}</span>
-                          <span>&middot;</span>
-                          <span>{{ alert.createdAt | relativeTime }}</span>
-                        </p>
-                      </div>
-                    </li>
-                  }
-                </ul>
-              }
+              <div class="stack">
+                <div class="panel">
+                  <div class="panel-head">
+                    <h3>By location</h3>
+                    <span class="spacer"></span>
+                    <a routerLink="/reference-data" class="small">Manage</a>
+                  </div>
+                  <div class="panel-body">
+                    <dp-bar-chart [data]="locationBars()" secondaryLabel="online" />
+                  </div>
+                </div>
+
+                <div class="panel">
+                  <div class="panel-head"><h3>By type</h3></div>
+                  <div class="panel-body">
+                    <dp-bar-chart [data]="typeBars()" />
+                  </div>
+                </div>
+              </div>
             </div>
           </section>
         </div>
-        } @else {
+      } @else {
+        <div class="panel">
           <dp-empty
             title="Could not load the dashboard"
             message="The API did not respond. Check that it is running, then try again."
           >
             <button type="button" class="btn btn-primary" (click)="load(true)">Try again</button>
           </dp-empty>
-        }
+        </div>
       }
     </div>
   `,
   changeDetection: ChangeDetectionStrategy.Eager,
   styles: [
     `
-      .two-up {
+      /*
+       * The verdict band. A left rule carries the status colour rather than a filled panel: the
+       * colour has to be findable from across a room without turning the top of the screen into
+       * a block of red.
+       */
+      .verdict {
         display: grid;
-        gap: 1rem;
-        grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+        gap: var(--sp-5);
+        padding: var(--sp-4) var(--sp-5);
+        border-left: 3px solid var(--line-strong);
+        background: var(--panel);
+        border-radius: 0 var(--r-md) var(--r-md) 0;
       }
 
-      @media (max-width: 1100px) {
-        .two-up { grid-template-columns: 1fr; }
+      .verdict-line {
+        display: flex;
+        gap: var(--sp-3);
+        align-items: baseline;
       }
 
-      .alert-feed {
+      .verdict-line .dot {
+        width: 7px;
+        height: 7px;
+        margin-top: 6px;
+        background: var(--line-strong);
+      }
+
+      .verdict-text {
+        margin: 0;
+        font-size: var(--fs-lg);
+        font-weight: var(--fw-medium);
+        letter-spacing: var(--tr-snug);
+      }
+
+      .verdict-ok { border-left-color: var(--ok); }
+      .verdict-ok .dot { background: var(--ok); }
+
+      .verdict-warn { border-left-color: var(--warn); }
+      .verdict-warn .dot { background: var(--warn); }
+
+      .verdict-danger { border-left-color: var(--danger); }
+      .verdict-danger .dot { background: var(--danger); }
+
+      /* Supporting context recedes: smaller headings, quieter chart labels. */
+      .context .panel-head h3 { color: var(--text-2); }
+
+      /* ---- recent alerts feed ---- */
+
+      .feed {
         margin: 0;
         padding: 0;
         list-style: none;
-        max-height: 420px;
+        max-height: 340px;
         overflow-y: auto;
       }
 
-      .alert-feed li {
+      .feed li {
         display: flex;
-        gap: 0.7rem;
-        padding: 0.7rem 1.1rem;
-        border-bottom: 1px solid var(--border);
+        gap: var(--sp-3);
+        padding: var(--sp-3) var(--sp-4);
+        border-bottom: 1px solid var(--line);
       }
 
-      .alert-feed li:last-child { border-bottom: none; }
+      .feed li:last-child { border-bottom: none; }
 
-      .bar {
-        width: 3px;
-        border-radius: 2px;
+      .rail {
+        width: 2px;
+        border-radius: 1px;
         flex: 0 0 auto;
       }
 
@@ -281,16 +358,22 @@ import { RelativeTimePipe } from '../../shared/utils/relative-time.pipe';
 
       .feed-message {
         margin: 0;
-        font-size: 0.82rem;
-        line-height: 1.4;
+        font-size: var(--fs-sm);
+        line-height: var(--lh-snug);
       }
 
       .feed-meta {
         display: flex;
-        gap: 0.4rem;
+        gap: var(--sp-2);
         align-items: center;
-        margin: 0.3rem 0 0;
+        margin: var(--sp-1) 0 0;
         flex-wrap: wrap;
+        font-size: var(--fs-meta);
+      }
+
+      @media (max-width: 600px) {
+        .verdict { padding: var(--sp-3) var(--sp-4); }
+        .verdict-text { font-size: var(--fs-body); }
       }
     `,
   ],
@@ -341,6 +424,68 @@ export class DashboardComponent implements OnInit, OnDestroy {
         this.refreshing.set(false);
       },
     });
+  }
+
+  /**
+   * The sentence at the top of the screen.
+   *
+   * Written to be read rather than decoded, and specific about the thing that is wrong: an
+   * operator should be able to act on this line alone without looking at the figures beneath it.
+   */
+  readonly verdict = computed(() => {
+    const data = this.summary();
+    if (!data) return '';
+
+    const parts: string[] = [];
+
+    if (data.alerts.critical > 0) {
+      parts.push(`${data.alerts.critical} critical ${data.alerts.critical === 1 ? 'alert' : 'alerts'}`);
+    }
+
+    const otherOpen = data.alerts.open - data.alerts.critical;
+    if (otherOpen > 0) {
+      parts.push(`${otherOpen} other open`);
+    }
+
+    if (data.devices.offline > 0) {
+      parts.push(`${data.devices.offline} ${data.devices.offline === 1 ? 'device' : 'devices'} offline`);
+    }
+
+    if (parts.length === 0) {
+      return data.devices.total === 0
+        ? 'No devices registered yet.'
+        : `All ${data.devices.total} devices reporting, no open alerts.`;
+    }
+
+    return `${parts.join(' · ')}.`;
+  });
+
+  readonly verdictTone = computed(() => {
+    const data = this.summary();
+    if (!data) return '';
+
+    if (data.alerts.critical > 0 || data.devices.offline > 0) return 'verdict-danger';
+    if (data.alerts.open > 0) return 'verdict-warn';
+
+    return 'verdict-ok';
+  });
+
+  readonly updatedLabel = computed(() => {
+    const data = this.summary();
+    if (!data) return '';
+
+    const seconds = Math.max(0, Math.round((Date.now() - new Date(data.generatedAt).getTime()) / 1000));
+
+    return seconds < 10 ? 'updated just now' : `updated ${seconds}s ago`;
+  });
+
+  /** Tints a row so the failing devices can be found without reading every cell. */
+  rowTone(row: DeviceHealthRow): string {
+    if (row.connectivityStatus === 'Offline') return 'row-danger';
+    if (row.highestOpenSeverity === 'Critical' || row.highestOpenSeverity === 'High') return 'row-danger';
+    if (row.highestOpenSeverity === 'Medium' || row.highestOpenSeverity === 'Low') return 'row-warn';
+
+    return '';
   }
 
   readonly onlineShare = computed(() => {

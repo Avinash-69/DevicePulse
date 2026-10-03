@@ -40,7 +40,6 @@ import { AbsoluteTimePipe, RelativeTimePipe } from '../../shared/utils/relative-
     <div class="page">
       <dp-page-header
         title="Alerts"
-        description="Conditions the configured rules have detected. Acknowledge to claim one, resolve to close it."
       >
         <a routerLink="/alert-rules" class="btn btn-sm">Alert rules</a>
       </dp-page-header>
@@ -210,11 +209,11 @@ import { AbsoluteTimePipe, RelativeTimePipe } from '../../shared/utils/relative-
     `
       .filters {
         display: flex;
-        gap: 0.6rem;
+        gap: var(--sp-2);
         align-items: center;
         flex-wrap: wrap;
-        padding: 0.8rem 1rem;
-        border-bottom: 1px solid var(--border);
+        padding: var(--sp-3) var(--sp-4);
+        border-bottom: 1px solid var(--line);
       }
 
       .filters .field select { width: auto; min-width: 150px; }
@@ -222,7 +221,7 @@ import { AbsoluteTimePipe, RelativeTimePipe } from '../../shared/utils/relative-
       .message { max-width: 420px; line-height: 1.4; }
 
       .clear-chip {
-        padding: 0 0 0 0.25rem;
+        padding: 0 0 0 var(--sp-1);
         font: inherit;
         color: inherit;
         background: none;
@@ -230,7 +229,7 @@ import { AbsoluteTimePipe, RelativeTimePipe } from '../../shared/utils/relative-
         cursor: pointer;
       }
 
-      td.right .btn + .btn { margin-left: 0.3rem; }
+      td.right .btn + .btn { margin-left: var(--sp-1); }
     `,
   ],
 })

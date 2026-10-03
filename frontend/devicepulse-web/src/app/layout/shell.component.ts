@@ -1,8 +1,9 @@
-import { Component, computed, inject, signal, ChangeDetectionStrategy } from '@angular/core';
-import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { Component, OnDestroy, OnInit, computed, inject, signal, ChangeDetectionStrategy } from '@angular/core';
+import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 
 import { AuthService } from '../core/auth/auth.service';
 import { Permissions } from '../core/auth/permissions';
+import { ApiService } from '../core/services/api.service';
 import { NotificationService } from '../core/services/notification.service';
 import { ThemeService } from '../core/services/theme.service';
 import { ToastsComponent } from './toasts.component';
@@ -20,6 +21,13 @@ interface NavItem {
  *
  * Navigation is filtered by permission so a user is not shown pages that would only return
  * 403s. That is a convenience; the guards and the API are what actually prevent access (§29).
+ *
+ * The top bar does real work rather than holding a theme toggle and an avatar. It carries the
+ * name of the current screen, a search box that jumps straight to a device, and a live count of
+ * open alerts. For a triage tool that last one matters most: the number an operator wants to
+ * know is "is anything on fire", and it should be visible from every screen rather than only
+ * from the dashboard. It costs one cheap request a minute -- a page of one row, read for its
+ * total -- and is skipped entirely for users who cannot see alerts.
  */
 @Component({
   selector: 'dp-shell',
@@ -28,14 +36,14 @@ interface NavItem {
   template: `
     <div class="shell" [class.sidebar-open]="sidebarOpen()">
       <aside class="sidebar">
-        <div class="brand">
+        <a class="brand" routerLink="/dashboard">
           <span class="mark" aria-hidden="true">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
               <path d="M2 12h4l2.5-7 3.5 14 3-9 2 4h5" stroke-linecap="round" stroke-linejoin="round" />
             </svg>
           </span>
           <span class="name">DevicePulse</span>
-        </div>
+        </a>
 
         <nav aria-label="Main">
           @for (group of visibleGroups(); track group.title) {
@@ -50,15 +58,19 @@ interface NavItem {
                   (click)="closeSidebarOnMobile()"
                 >
                   <span class="icon" [innerHTML]="item.icon" aria-hidden="true"></span>
-                  <span>{{ item.label }}</span>
+                  <span class="nav-label">{{ item.label }}</span>
+
+                  @if (item.path === '/alerts' && openAlerts() > 0) {
+                    <span class="count" [class.count-danger]="openAlerts() > 0">{{ openAlerts() }}</span>
+                  }
                 </a>
               }
             </div>
           }
         </nav>
 
-        <div class="sidebar-foot subtle small">
-          <span>{{ user()?.roles?.join(', ') }}</span>
+        <div class="sidebar-foot">
+          <span class="label">{{ user()?.roles?.join(', ') }}</span>
         </div>
       </aside>
 
@@ -70,20 +82,67 @@ interface NavItem {
             aria-label="Toggle navigation"
             (click)="sidebarOpen.set(!sidebarOpen())"
           >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M3 6h18M3 12h18M3 18h18" stroke-linecap="round" />
             </svg>
           </button>
 
+          <h2 class="where">{{ pageName() }}</h2>
+
           <span class="spacer"></span>
+
+          <form class="find" (submit)="search($event)" role="search">
+            <svg
+              class="find-icon"
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              aria-hidden="true"
+            >
+              <circle cx="11" cy="11" r="7" />
+              <path d="m20 20-3.5-3.5" stroke-linecap="round" />
+            </svg>
+            <input
+              type="search"
+              name="q"
+              placeholder="Find a device"
+              aria-label="Find a device"
+              autocomplete="off"
+            />
+          </form>
+
+          @if (canSeeAlerts()) {
+            <a
+              routerLink="/alerts"
+              class="alert-pulse"
+              [class.live]="openAlerts() > 0"
+              [attr.aria-label]="openAlerts() + ' open alerts'"
+            >
+              <span class="dot"></span>
+              <span class="num">{{ openAlerts() }}</span>
+              <span class="alert-word">open</span>
+            </a>
+          }
 
           <button
             type="button"
-            class="btn btn-ghost btn-sm"
+            class="btn btn-ghost btn-icon"
             [attr.aria-label]="'Switch to ' + (theme.isDark() ? 'light' : 'dark') + ' theme'"
             (click)="theme.toggle()"
           >
-            {{ theme.isDark() ? 'Light' : 'Dark' }}
+            @if (theme.isDark()) {
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="4" />
+                <path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5 19 19M19 5l-1.5 1.5M6.5 17.5 5 19" stroke-linecap="round" />
+              </svg>
+            } @else {
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a7 7 0 1 0 10.5 10.5z" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+            }
           </button>
 
           <div class="account">
@@ -96,17 +155,17 @@ interface NavItem {
               <span class="avatar" aria-hidden="true">{{ initials() }}</span>
               <span class="who">
                 <span class="who-name">{{ user()?.name }}</span>
-                <span class="who-email subtle small">{{ user()?.email }}</span>
+                <span class="who-email">{{ user()?.email }}</span>
               </span>
             </button>
 
             @if (menuOpen()) {
-              <div class="menu card" role="menu">
+              <div class="menu account-menu" role="menu">
                 <a routerLink="/account" class="menu-item" (click)="menuOpen.set(false)">
-                  Change password
+                  Your account
                 </a>
                 <hr class="divider" />
-                <button type="button" class="menu-item" (click)="signOut()">Sign out</button>
+                <button type="button" class="menu-item menu-item-danger" (click)="signOut()">Sign out</button>
               </div>
             }
           </div>
@@ -138,194 +197,294 @@ interface NavItem {
       .sidebar {
         display: flex;
         flex-direction: column;
-        background: var(--surface);
-        border-right: 1px solid var(--border);
+        background: var(--panel);
+        border-right: 1px solid var(--line);
         position: sticky;
         top: 0;
         height: 100vh;
         overflow-y: auto;
+        z-index: 30;
       }
 
       .brand {
         display: flex;
-        gap: 0.55rem;
+        gap: var(--sp-2);
         align-items: center;
         height: var(--topbar-height);
-        padding: 0 1rem;
-        border-bottom: 1px solid var(--border);
+        padding: 0 var(--sp-3);
         flex: 0 0 auto;
+        color: var(--text);
+        border-bottom: 1px solid var(--line);
       }
+
+      .brand:hover { text-decoration: none; }
 
       .mark {
         display: grid;
         place-items: center;
-        width: 26px;
-        height: 26px;
-        color: var(--accent-text);
-        background: var(--accent);
-        border-radius: 6px;
+        width: 24px;
+        height: 24px;
+        color: var(--accent);
+        flex: 0 0 auto;
       }
 
-      .mark svg { width: 17px; height: 17px; }
+      .mark svg { width: 20px; height: 20px; }
 
       .name {
-        font-weight: 600;
-        letter-spacing: -0.02em;
+        font-size: var(--fs-body);
+        font-weight: var(--fw-semibold);
+        letter-spacing: var(--tr-snug);
       }
 
       nav {
         flex: 1 1 auto;
-        padding: 0.75rem 0.6rem;
+        padding: var(--sp-3) var(--sp-2);
+        display: grid;
+        gap: var(--sp-5);
+        align-content: start;
       }
 
-      .nav-group { margin-bottom: 1rem; }
+      .nav-group { display: grid; gap: 1px; }
 
       .nav-title {
-        display: block;
-        padding: 0 0.6rem 0.35rem;
-        font-size: 0.68rem;
-        font-weight: 600;
+        font-size: var(--fs-micro);
+        font-weight: var(--fw-semibold);
+        letter-spacing: var(--tr-wide);
         text-transform: uppercase;
-        letter-spacing: 0.06em;
-        color: var(--text-subtle);
+        color: var(--text-3);
+        padding: 0 var(--sp-2) var(--sp-2);
       }
 
+      /*
+       * The active item is marked by a left rule in the accent colour plus a background shift.
+       * A filled pill would make the nav the most saturated thing on the screen, which is
+       * exactly backwards for a tool where the data should dominate.
+       */
       .nav-item {
         display: flex;
-        gap: 0.6rem;
+        gap: var(--sp-2);
         align-items: center;
-        padding: 0.45rem 0.6rem;
-        font-size: 0.875rem;
-        color: var(--text-muted);
-        border-radius: var(--radius);
-        text-decoration: none;
+        height: 29px;
+        padding: 0 var(--sp-2);
+        font-size: var(--fs-sm);
+        color: var(--text-2);
+        border-radius: var(--r-sm);
+        border-left: 2px solid transparent;
+        white-space: nowrap;
+        min-width: 0;
       }
 
       .nav-item:hover {
         color: var(--text);
-        background: var(--surface-3);
+        background: var(--panel-2);
         text-decoration: none;
       }
 
       .nav-item.active {
-        color: var(--accent);
-        background: var(--accent-soft);
-        font-weight: 500;
+        color: var(--text);
+        font-weight: var(--fw-medium);
+        background: var(--accent-wash);
+        border-left-color: var(--accent);
+        border-radius: 0 var(--r-sm) var(--r-sm) 0;
       }
 
-      .icon {
+      .nav-label { overflow: hidden; text-overflow: ellipsis; }
+
+      .nav-item .icon {
         display: grid;
         place-items: center;
-        width: 17px;
-        height: 17px;
+        width: 16px;
+        height: 16px;
         flex: 0 0 auto;
+        color: var(--text-3);
       }
 
-      .icon ::ng-deep svg { width: 16px; height: 16px; }
+      .nav-item.active .icon { color: var(--accent); }
+      .nav-item:hover .icon { color: var(--text-2); }
+      .nav-item .icon svg { width: 15px; height: 15px; }
+      .nav-item .count { margin-left: auto; }
 
       .sidebar-foot {
-        padding: 0.7rem 1rem;
-        border-top: 1px solid var(--border);
         flex: 0 0 auto;
+        padding: var(--sp-3);
+        border-top: 1px solid var(--line);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
       }
 
       /* ---- main ---- */
 
-      .main {
-        display: flex;
-        flex-direction: column;
-        min-width: 0;
-      }
+      .main { display: flex; flex-direction: column; min-width: 0; }
 
       .topbar {
         display: flex;
-        gap: 0.5rem;
+        gap: var(--sp-2);
         align-items: center;
         height: var(--topbar-height);
-        padding: 0 1rem;
-        background: var(--surface);
-        border-bottom: 1px solid var(--border);
+        padding: 0 var(--sp-4) 0 var(--sp-3);
+        background: var(--panel);
+        border-bottom: 1px solid var(--line);
         position: sticky;
         top: 0;
         z-index: 20;
       }
 
-      .menu-toggle { display: none; }
+      .where {
+        font-size: var(--fs-body);
+        font-weight: var(--fw-semibold);
+        letter-spacing: var(--tr-snug);
+        white-space: nowrap;
+      }
 
-      main { flex: 1 1 auto; min-width: 0; }
+      /* ---- find ---- */
 
-      /* ---- account menu ---- */
+      .find {
+        position: relative;
+        display: flex;
+        align-items: center;
+        width: 220px;
+      }
 
-      .account { position: relative; }
+      .find-icon {
+        position: absolute;
+        left: var(--sp-2);
+        color: var(--text-3);
+        pointer-events: none;
+      }
+
+      .find input {
+        height: 28px;
+        padding-left: var(--sp-6);
+        font-size: var(--fs-sm);
+        background: var(--panel-2);
+        border-color: transparent;
+      }
+
+      .find input:focus {
+        background: var(--panel);
+        border-color: var(--accent);
+      }
+
+      /* ---- alert pulse ---- */
+
+      /*
+       * Always-visible count of open alerts. Quiet when there is nothing to do, and coloured
+       * only when there is -- a permanently red badge trains people to ignore it.
+       */
+      .alert-pulse {
+        display: inline-flex;
+        gap: var(--sp-2);
+        align-items: center;
+        height: 28px;
+        padding: 0 var(--sp-3);
+        font-size: var(--fs-sm);
+        font-weight: var(--fw-medium);
+        color: var(--text-3);
+        border: 1px solid var(--line);
+        border-radius: var(--r-md);
+        white-space: nowrap;
+      }
+
+      .alert-pulse:hover {
+        color: var(--text);
+        background: var(--panel-2);
+        text-decoration: none;
+      }
+
+      .alert-pulse .dot { background: var(--line-strong); }
+      .alert-pulse .num { font-variant-numeric: tabular-nums; }
+
+      .alert-pulse.live {
+        color: var(--danger);
+        border-color: var(--danger-line);
+        background: var(--danger-wash);
+      }
+
+      .alert-pulse.live .dot { background: var(--danger); }
+      .alert-pulse.live:hover { color: var(--danger); background: var(--danger-wash); }
+
+      /* ---- account ---- */
+
+      .account { position: relative; flex: 0 0 auto; }
 
       .account-btn {
         display: flex;
-        gap: 0.5rem;
+        gap: var(--sp-2);
         align-items: center;
-        padding: 0.25rem 0.4rem;
+        padding: var(--sp-1) var(--sp-1);
         font: inherit;
         color: inherit;
         background: transparent;
         border: none;
-        border-radius: var(--radius);
+        border-radius: var(--r-md);
         cursor: pointer;
+        max-width: 190px;
       }
 
-      .account-btn:hover { background: var(--surface-3); }
+      .account-btn:hover { background: var(--panel-2); }
 
       .avatar {
         display: grid;
         place-items: center;
-        width: 28px;
-        height: 28px;
-        font-size: 0.72rem;
-        font-weight: 600;
-        color: var(--accent-text);
-        background: var(--accent);
-        border-radius: 50%;
+        width: 26px;
+        height: 26px;
+        font-size: var(--fs-micro);
+        font-weight: var(--fw-semibold);
+        color: var(--accent);
+        background: var(--accent-wash);
+        border: 1px solid var(--accent-line);
+        border-radius: var(--r-sm);
         flex: 0 0 auto;
       }
 
       .who {
         display: grid;
         text-align: left;
+        min-width: 0;
+      }
+
+      .who-name {
+        font-size: var(--fs-sm);
+        font-weight: var(--fw-medium);
         line-height: 1.25;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
       }
 
-      .who-name { font-size: 0.82rem; font-weight: 500; }
-      .who-email { font-size: 0.72rem; }
+      .who-email {
+        font-size: var(--fs-micro);
+        color: var(--text-3);
+        line-height: 1.25;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
 
-      .menu {
+      .account-menu {
         position: absolute;
-        top: calc(100% + 6px);
+        top: calc(100% + 4px);
         right: 0;
-        min-width: 190px;
-        padding: 0.3rem;
-        box-shadow: var(--shadow-lg);
-        z-index: 30;
+        z-index: 40;
       }
 
-      .menu-item {
-        display: block;
-        width: 100%;
-        padding: 0.45rem 0.6rem;
-        font: inherit;
-        font-size: 0.85rem;
-        text-align: left;
-        color: var(--text);
-        background: transparent;
-        border: none;
-        border-radius: var(--radius-sm);
-        cursor: pointer;
-        text-decoration: none;
+      main { flex: 1 1 auto; min-width: 0; }
+
+      .scrim {
+        position: fixed;
+        inset: 0;
+        z-index: 25;
+        background: rgb(12 15 19 / 45%);
       }
 
-      .menu-item:hover { background: var(--surface-3); text-decoration: none; }
+      /* ---- responsive ---- */
 
-      .scrim { display: none; }
-
-      /* ---- narrow screens: the sidebar becomes a drawer ---- */
-
+      /*
+       * Below 900px the sidebar becomes an overlay drawer rather than a column, and the search
+       * box collapses to leave room for the alert count -- on a phone, knowing something is
+       * wrong matters more than being able to search from the chrome.
+       */
       @media (max-width: 900px) {
         .shell { grid-template-columns: 1fr; }
 
@@ -333,31 +492,34 @@ interface NavItem {
           position: fixed;
           top: 0;
           left: 0;
-          width: var(--sidebar-width);
-          z-index: 40;
+          width: 248px;
           transform: translateX(-100%);
-          transition: transform 0.18s ease-out;
+          transition: transform 0.16s ease;
         }
 
         .sidebar-open .sidebar { transform: translateX(0); }
-
         .menu-toggle { display: inline-flex; }
+        .find { display: none; }
+      }
 
-        .scrim {
-          display: block;
-          position: fixed;
-          inset: 0;
-          z-index: 35;
-          background: rgb(8 12 16 / 45%);
-        }
+      @media (min-width: 901px) {
+        .menu-toggle { display: none; }
+        .scrim { display: none; }
+      }
 
+      @media (max-width: 600px) {
         .who { display: none; }
+        .alert-word { display: none; }
+        .topbar { padding: 0 var(--sp-2); }
+        .account-btn { max-width: none; }
       }
     `,
   ],
 })
-export class ShellComponent {
+export class ShellComponent implements OnInit, OnDestroy {
   private readonly auth = inject(AuthService);
+  private readonly api = inject(ApiService);
+  private readonly router = inject(Router);
   private readonly notifications = inject(NotificationService);
 
   readonly theme = inject(ThemeService);
@@ -365,6 +527,11 @@ export class ShellComponent {
   readonly user = this.auth.user;
   readonly sidebarOpen = signal(false);
   readonly menuOpen = signal(false);
+  readonly openAlerts = signal(0);
+
+  private timer?: ReturnType<typeof setInterval>;
+
+  readonly canSeeAlerts = computed(() => this.auth.has(Permissions.alertView));
 
   readonly initials = computed(() => {
     const name = this.user()?.name ?? '';
@@ -423,6 +590,83 @@ export class ShellComponent {
       }))
       .filter((group) => group.items.length > 0),
   );
+
+  private readonly url = signal('');
+
+  /**
+   * The name of the current screen, for the top bar.
+   *
+   * Derived from the nav table rather than from a second list, so a renamed nav item cannot
+   * disagree with the heading. The few screens that are not in the nav are named here.
+   */
+  readonly pageName = computed(() => {
+    const path = this.url().split('?')[0];
+
+    const extras: Record<string, string> = {
+      '/account': 'Your account',
+    };
+
+    if (extras[path]) return extras[path];
+
+    const items = this.groups.flatMap((group) => group.items);
+
+    // Longest match first, so /devices/12 resolves to Devices rather than failing.
+    const match = items
+      .filter((item) => path === item.path || path.startsWith(item.path + '/'))
+      .sort((a, b) => b.path.length - a.path.length)[0];
+
+    if (match && path !== match.path) {
+      // A detail route under a list: name the section, since the record's own name is the
+      // page heading immediately below.
+      return match.label;
+    }
+
+    return match?.label ?? 'DevicePulse';
+  });
+
+  ngOnInit(): void {
+    this.url.set(this.router.url);
+
+    this.router.events.subscribe(() => {
+      const next = this.router.url;
+      if (next !== this.url()) this.url.set(next);
+    });
+
+    if (this.canSeeAlerts()) {
+      this.refreshAlertCount();
+      // A minute: slow enough to be free, fast enough that the chrome is not lying for long.
+      this.timer = setInterval(() => this.refreshAlertCount(), 60_000);
+    }
+  }
+
+  ngOnDestroy(): void {
+    if (this.timer) clearInterval(this.timer);
+  }
+
+  /** One row, read only for its total: the cheapest way to ask "how many are open". */
+  private refreshAlertCount(): void {
+    this.api.getAlerts({ status: 'Open', page: 1, pageSize: 1 }).subscribe({
+      next: (page) => this.openAlerts.set(page.totalCount),
+      // Silent: the error interceptor has already toasted anything worth saying, and a failed
+      // count must not produce a toast every minute.
+      error: () => undefined,
+    });
+  }
+
+  search(event: Event): void {
+    event.preventDefault();
+
+    const input = (event.target as HTMLFormElement).elements.namedItem('q') as HTMLInputElement | null;
+    const term = input?.value.trim() ?? '';
+
+    if (!term) return;
+
+    // Goes through the URL rather than a shared service, so the resulting view is linkable and
+    // the back button behaves.
+    this.router.navigate(['/devices'], { queryParams: { search: term } });
+    if (input) input.value = '';
+    this.closeSidebarOnMobile();
+  }
 
   closeSidebarOnMobile(): void {
     if (window.matchMedia('(max-width: 900px)').matches) {

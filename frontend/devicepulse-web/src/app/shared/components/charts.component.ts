@@ -99,7 +99,7 @@ export interface BarDatum {
       }
 
       .grid {
-        stroke: var(--border);
+        stroke: var(--line);
         stroke-width: 1;
         vector-effect: non-scaling-stroke;
       }
@@ -121,14 +121,14 @@ export interface BarDatum {
 
       .marker {
         fill: var(--accent);
-        stroke: var(--surface);
+        stroke: var(--panel);
         stroke-width: 2;
         vector-effect: non-scaling-stroke;
       }
 
       .axis-label {
         font-size: 10px;
-        fill: var(--text-subtle);
+        fill: var(--text-3);
       }
 
       .no-data {
@@ -139,13 +139,13 @@ export interface BarDatum {
 
       .legend {
         display: flex;
-        gap: 1rem;
+        gap: var(--sp-4);
         align-items: center;
-        margin-top: 0.5rem;
+        margin-top: var(--sp-2);
         flex-wrap: wrap;
       }
 
-      .key { display: inline-flex; gap: 0.35rem; align-items: center; }
+      .key { display: inline-flex; gap: var(--sp-1); align-items: center; }
 
       .swatch {
         width: 12px;
@@ -325,7 +325,7 @@ function formatBucket(iso: string | undefined): string {
     `
       .bars {
         display: grid;
-        gap: 0.55rem;
+        gap: var(--sp-2);
         margin: 0;
         padding: 0;
         list-style: none;
@@ -334,13 +334,13 @@ function formatBucket(iso: string | undefined): string {
       li {
         display: grid;
         grid-template-columns: minmax(80px, 150px) 1fr 44px;
-        gap: 0.6rem;
+        gap: var(--sp-2);
         align-items: center;
       }
 
       .label {
         font-size: 0.8rem;
-        color: var(--text-muted);
+        color: var(--text-2);
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
@@ -349,15 +349,15 @@ function formatBucket(iso: string | undefined): string {
       .track {
         position: relative;
         height: 18px;
-        background: var(--surface-3);
-        border-radius: var(--radius-sm);
+        background: var(--panel-3);
+        border-radius: var(--r-sm);
         overflow: hidden;
       }
 
       .fill {
         position: absolute;
         inset: 0 auto 0 0;
-        border-radius: var(--radius-sm);
+        border-radius: var(--r-sm);
         transition: width 0.25s ease-out;
       }
 
@@ -375,9 +375,9 @@ function formatBucket(iso: string | undefined): string {
 
       .legend {
         display: flex;
-        gap: 0.35rem;
+        gap: var(--sp-1);
         align-items: center;
-        margin: 0.6rem 0 0;
+        margin: var(--sp-2) 0 0;
       }
 
       .swatch {
@@ -472,7 +472,7 @@ export interface DonutSlice {
     `
       .donut-wrap {
         display: flex;
-        gap: 1.25rem;
+        gap: var(--sp-5);
         align-items: center;
         flex-wrap: wrap;
       }
@@ -491,14 +491,14 @@ export interface DonutSlice {
 
       .total-label {
         font-size: 9px;
-        fill: var(--text-subtle);
+        fill: var(--text-3);
         text-transform: uppercase;
         letter-spacing: 0.05em;
       }
 
       .legend {
         display: grid;
-        gap: 0.35rem;
+        gap: var(--sp-1);
         margin: 0;
         padding: 0;
         list-style: none;
@@ -508,7 +508,7 @@ export interface DonutSlice {
       .legend li {
         display: grid;
         grid-template-columns: 12px 1fr auto;
-        gap: 0.5rem;
+        gap: var(--sp-2);
         align-items: center;
         font-size: 0.8rem;
       }
@@ -519,7 +519,7 @@ export interface DonutSlice {
         border-radius: 3px;
       }
 
-      .label { color: var(--text-muted); }
+      .label { color: var(--text-2); }
     `,
   ],
 })
@@ -587,7 +587,7 @@ export class DonutChartComponent {
     `
       .battery {
         display: inline-flex;
-        gap: 0.4rem;
+        gap: var(--sp-2);
         align-items: center;
       }
 
@@ -595,8 +595,8 @@ export class DonutChartComponent {
         position: relative;
         width: 34px;
         height: 12px;
-        background: var(--surface-3);
-        border: 1px solid var(--border-strong);
+        background: var(--panel-3);
+        border: 1px solid var(--line-strong);
         border-radius: 3px;
         overflow: hidden;
       }
@@ -608,7 +608,7 @@ export class DonutChartComponent {
 
       .pct {
         font-size: 0.75rem;
-        color: var(--text-muted);
+        color: var(--text-2);
         font-variant-numeric: tabular-nums;
       }
     `,
