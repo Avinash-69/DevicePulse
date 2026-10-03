@@ -1,4 +1,4 @@
-﻿using DevicePulse.Api.Entities;
+using DevicePulse.Api.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

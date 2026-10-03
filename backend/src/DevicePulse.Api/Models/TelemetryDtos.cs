@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using DevicePulse.Api.Models.Common;
 
 namespace DevicePulse.Api.Models;

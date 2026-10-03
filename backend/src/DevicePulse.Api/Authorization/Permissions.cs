@@ -1,4 +1,4 @@
-﻿namespace DevicePulse.Api.Authorization;
+namespace DevicePulse.Api.Authorization;
 
 /// <summary>
 /// The permission catalog. This is developer-controlled by design (Appendix C item 4): new

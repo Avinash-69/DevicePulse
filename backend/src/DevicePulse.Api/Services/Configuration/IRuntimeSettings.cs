@@ -1,4 +1,4 @@
-﻿namespace DevicePulse.Api.Services.Configuration;
+namespace DevicePulse.Api.Services.Configuration;
 
 /// <summary>
 /// The single typed entry point for reading runtime business settings (Appendix C item 6).

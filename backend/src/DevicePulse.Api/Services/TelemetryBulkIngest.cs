@@ -1,7 +1,6 @@
 using DevicePulse.Api.Data;
 using DevicePulse.Api.Entities;
 using DevicePulse.Api.Entities.Enums;
-using DevicePulse.Api.Exceptions;
 using DevicePulse.Api.Models;
 using DevicePulse.Api.Services.Alerting;
 using DevicePulse.Api.Services.Configuration;

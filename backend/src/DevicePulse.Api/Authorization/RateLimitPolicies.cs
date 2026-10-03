@@ -1,4 +1,4 @@
-﻿namespace DevicePulse.Api.Authorization;
+namespace DevicePulse.Api.Authorization;
 
 /// <summary>
 /// Named rate-limit policies (Appendix D.3).

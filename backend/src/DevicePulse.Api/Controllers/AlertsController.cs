@@ -1,4 +1,4 @@
-﻿using DevicePulse.Api.Authorization;
+using DevicePulse.Api.Authorization;
 using DevicePulse.Api.Models;
 using DevicePulse.Api.Models.Common;
 using DevicePulse.Api.Services;

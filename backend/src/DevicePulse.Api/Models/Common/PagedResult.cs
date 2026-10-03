@@ -1,4 +1,4 @@
-﻿namespace DevicePulse.Api.Models.Common;
+namespace DevicePulse.Api.Models.Common;
 
 /// <summary>
 /// One pagination shape, used by every list endpoint (Appendix D.1). An inconsistent

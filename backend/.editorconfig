@@ -1,0 +1,84 @@
+# Formatting rules for the backend.
+#
+# Checked in so `dotnet format --verify-no-changes` behaves the same on a developer machine and
+# on a CI runner. Without this file the SDK's built-in defaults apply, and those can shift
+# between SDK versions — which turns a formatting gate into a source of mystery CI failures.
+
+root = true
+
+[*]
+end_of_line = crlf
+indent_style = space
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.{cs,csx}]
+# utf-8-bom, not utf-8: the BOM is what guarantees the compiler reads these files as UTF-8
+# rather than falling back to the system code page, which corrupts non-ASCII characters inside
+# string literals (degree signs, em dashes). "utf-8" in editorconfig means explicitly no BOM.
+charset = utf-8-bom
+indent_size = 4
+max_line_length = 120
+
+# ---- using directives ----
+dotnet_sort_system_directives_first = true
+dotnet_separate_import_directive_groups = false
+csharp_using_directive_placement = outside_namespace:warning
+
+# ---- modern C# the codebase already relies on ----
+csharp_style_namespace_declarations = file_scoped:warning
+csharp_prefer_braces = when_multiline:silent
+csharp_style_expression_bodied_methods = when_on_single_line:silent
+csharp_style_expression_bodied_properties = when_on_single_line:suggestion
+csharp_style_prefer_primary_constructors = false:silent
+
+dotnet_style_prefer_collection_expression = true:suggestion
+csharp_style_prefer_pattern_matching = true:suggestion
+csharp_style_prefer_switch_expression = true:suggestion
+csharp_style_prefer_range_operator = true:suggestion
+csharp_style_prefer_index_operator = true:suggestion
+
+dotnet_style_coalesce_expression = true:suggestion
+dotnet_style_null_propagation = true:suggestion
+dotnet_style_object_initializer = true:suggestion
+dotnet_style_prefer_conditional_expression_over_assignment = true:silent
+dotnet_style_prefer_conditional_expression_over_return = true:silent
+
+# var only where the type is already obvious from the right-hand side.
+csharp_style_var_for_built_in_types = false:suggestion
+csharp_style_var_when_type_is_apparent = true:suggestion
+csharp_style_var_elsewhere = false:suggestion
+
+# ---- naming ----
+# Naming is left to review rather than enforced here.
+#
+# The obvious rule — private fields take _camelCase — cannot be expressed cleanly: a
+# `private static readonly` field matches both "private readonly" and "private static" symbol
+# groups, so one of the two rules always fires on it regardless of declaration order, and the
+# convention for such a field (PascalCase, since it is effectively a constant) differs from the
+# one for an instance field. Rather than contort the configuration, IDE1006 is advisory: the
+# codebase follows the convention consistently, and this gate exists to catch whitespace drift
+# and dead usings, not to litigate naming.
+dotnet_diagnostic.IDE1006.severity = suggestion
+
+# ---- analyzer severities ----
+# Unused usings and unused private members are build noise that hides real problems.
+dotnet_diagnostic.IDE0005.severity = warning
+dotnet_diagnostic.IDE0051.severity = warning
+dotnet_diagnostic.IDE0052.severity = warning
+
+[*.{json,yml,yaml}]
+charset = utf-8
+indent_size = 2
+end_of_line = lf
+
+[*.{csproj,slnx,props,targets}]
+indent_size = 2
+
+[*.ps1]
+indent_size = 4
+end_of_line = crlf
+
+[*.md]
+# Markdown uses trailing double-space for a hard line break.
+trim_trailing_whitespace = false

@@ -1,4 +1,4 @@
-﻿namespace DevicePulse.Api.Entities.Enums;
+namespace DevicePulse.Api.Entities.Enums;
 
 /// <summary>
 /// Where a device sits administratively. Deliberately separate from

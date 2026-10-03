@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 using DevicePulse.Api.Data;
 using DevicePulse.Api.Entities;
 using DevicePulse.Api.Exceptions;

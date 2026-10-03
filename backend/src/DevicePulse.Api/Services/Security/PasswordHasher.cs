@@ -1,4 +1,4 @@
-﻿using System.Security.Cryptography;
+using System.Security.Cryptography;
 using DevicePulse.Api.Exceptions;
 using DevicePulse.Api.Options;
 using Microsoft.Extensions.Options;

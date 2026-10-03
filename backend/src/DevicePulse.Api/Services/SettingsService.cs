@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+using System.Globalization;
 using DevicePulse.Api.Data;
 using DevicePulse.Api.Entities;
 using DevicePulse.Api.Entities.Enums;
@@ -189,45 +189,45 @@ public sealed class SettingsService : ISettingsService
         switch (setting.ValueType)
         {
             case SettingValueType.Integer:
-            {
-                if (!int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsed))
-                    throw Invalid(setting.Key, "Enter a whole number.");
+                {
+                    if (!int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsed))
+                        throw Invalid(setting.Key, "Enter a whole number.");
 
-                EnsureInRange(setting, parsed);
-                return parsed.ToString(CultureInfo.InvariantCulture);
-            }
+                    EnsureInRange(setting, parsed);
+                    return parsed.ToString(CultureInfo.InvariantCulture);
+                }
 
             case SettingValueType.Decimal:
-            {
-                if (!double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out var parsed))
-                    throw Invalid(setting.Key, "Enter a number.");
+                {
+                    if (!double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out var parsed))
+                        throw Invalid(setting.Key, "Enter a number.");
 
-                EnsureInRange(setting, parsed);
-                return parsed.ToString("0.####", CultureInfo.InvariantCulture);
-            }
+                    EnsureInRange(setting, parsed);
+                    return parsed.ToString("0.####", CultureInfo.InvariantCulture);
+                }
 
             case SettingValueType.Boolean:
-            {
-                if (!bool.TryParse(value, out var parsed))
-                    throw Invalid(setting.Key, "Enter true or false.");
+                {
+                    if (!bool.TryParse(value, out var parsed))
+                        throw Invalid(setting.Key, "Enter true or false.");
 
-                return parsed ? "true" : "false";
-            }
+                    return parsed ? "true" : "false";
+                }
 
             case SettingValueType.Enum:
-            {
-                var allowed = (setting.AllowedValues ?? string.Empty)
-                    .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                {
+                    var allowed = (setting.AllowedValues ?? string.Empty)
+                        .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
-                // Matched case-insensitively but stored in the catalog's own casing, so later
-                // comparisons against the canonical value hold.
-                var match = allowed.FirstOrDefault(a => string.Equals(a, value, StringComparison.OrdinalIgnoreCase));
+                    // Matched case-insensitively but stored in the catalog's own casing, so later
+                    // comparisons against the canonical value hold.
+                    var match = allowed.FirstOrDefault(a => string.Equals(a, value, StringComparison.OrdinalIgnoreCase));
 
-                if (match is null)
-                    throw Invalid(setting.Key, $"Must be one of: {string.Join(", ", allowed)}.");
+                    if (match is null)
+                        throw Invalid(setting.Key, $"Must be one of: {string.Join(", ", allowed)}.");
 
-                return match;
-            }
+                    return match;
+                }
 
             default:
                 if (value.Length > 1000)

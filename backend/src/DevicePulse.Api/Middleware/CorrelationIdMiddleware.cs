@@ -1,4 +1,4 @@
-﻿namespace DevicePulse.Api.Middleware;
+namespace DevicePulse.Api.Middleware;
 
 /// <summary>
 /// Accepts an inbound <c>X-Correlation-Id</c> or mints one, puts it on HttpContext.Items, pushes

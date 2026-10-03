@@ -1,4 +1,4 @@
-﻿using DevicePulse.Api.Data;
+using DevicePulse.Api.Data;
 using DevicePulse.Api.Services.Configuration;
 using Microsoft.EntityFrameworkCore;
 

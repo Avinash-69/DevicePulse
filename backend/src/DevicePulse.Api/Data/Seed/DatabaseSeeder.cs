@@ -1,4 +1,4 @@
-﻿using DevicePulse.Api.Authorization;
+using DevicePulse.Api.Authorization;
 using DevicePulse.Api.Entities;
 using DevicePulse.Api.Entities.Enums;
 using DevicePulse.Api.Options;

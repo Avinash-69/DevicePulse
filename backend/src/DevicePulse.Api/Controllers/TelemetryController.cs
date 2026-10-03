@@ -1,4 +1,3 @@
-﻿using System.Security.Claims;
 using DevicePulse.Api.Authorization;
 using DevicePulse.Api.Exceptions;
 using DevicePulse.Api.Models;

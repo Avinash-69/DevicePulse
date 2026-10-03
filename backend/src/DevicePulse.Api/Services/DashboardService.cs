@@ -1,4 +1,4 @@
-﻿using DevicePulse.Api.Data;
+using DevicePulse.Api.Data;
 using DevicePulse.Api.Entities.Enums;
 using DevicePulse.Api.Models;
 using DevicePulse.Api.Services.Configuration;
@@ -174,7 +174,10 @@ public sealed class DashboardService : IDashboardService
             .GroupBy(t => new { t.RecordedAt.Year, t.RecordedAt.Month, t.RecordedAt.Day, t.RecordedAt.Hour })
             .Select(g => new
             {
-                g.Key.Year, g.Key.Month, g.Key.Day, g.Key.Hour,
+                g.Key.Year,
+                g.Key.Month,
+                g.Key.Day,
+                g.Key.Hour,
                 AvgTemperature = g.Average(t => t.Temperature),
                 MinTemperature = g.Min(t => t.Temperature),
                 MaxTemperature = g.Max(t => t.Temperature),

@@ -1,4 +1,4 @@
-﻿namespace DevicePulse.Api.Entities;
+namespace DevicePulse.Api.Entities;
 
 public class Telemetry
 {

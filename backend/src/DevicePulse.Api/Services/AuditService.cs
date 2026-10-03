@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using DevicePulse.Api.Data;
 using DevicePulse.Api.Entities;
 using DevicePulse.Api.Models.Common;

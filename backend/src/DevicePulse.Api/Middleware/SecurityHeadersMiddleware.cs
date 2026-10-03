@@ -1,4 +1,4 @@
-﻿namespace DevicePulse.Api.Middleware;
+namespace DevicePulse.Api.Middleware;
 
 /// <summary>
 /// Standard security response headers (Appendix D.3).

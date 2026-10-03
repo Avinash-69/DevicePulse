@@ -1,4 +1,4 @@
-﻿using System.Security.Claims;
+using System.Security.Claims;
 using DevicePulse.Api.Authorization;
 
 namespace DevicePulse.Api.Services.Security;

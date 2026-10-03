@@ -1,4 +1,4 @@
-﻿using DevicePulse.Api.Data;
+using DevicePulse.Api.Data;
 using DevicePulse.Api.Entities;
 using DevicePulse.Api.Entities.Enums;
 using DevicePulse.Api.Exceptions;

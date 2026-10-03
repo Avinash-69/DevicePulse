@@ -1,5 +1,4 @@
-﻿using DevicePulse.Api.Data;
-using DevicePulse.Api.Entities.Enums;
+using DevicePulse.Api.Data;
 using Microsoft.EntityFrameworkCore;
 
 namespace DevicePulse.Api.Services.Configuration;

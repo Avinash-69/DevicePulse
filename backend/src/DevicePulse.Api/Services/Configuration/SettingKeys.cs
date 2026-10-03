@@ -1,4 +1,4 @@
-﻿using DevicePulse.Api.Entities.Enums;
+using DevicePulse.Api.Entities.Enums;
 
 namespace DevicePulse.Api.Services.Configuration;
 

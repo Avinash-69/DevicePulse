@@ -1,4 +1,4 @@
-﻿using DevicePulse.Api.Data;
+using DevicePulse.Api.Data;
 using DevicePulse.Api.Entities;
 using DevicePulse.Api.Entities.Enums;
 using DevicePulse.Api.Exceptions;
@@ -280,8 +280,13 @@ public sealed class AlertRuleService : IAlertRuleService
         // side by side — the single most useful thing to see when an alert storm starts.
         var before = new
         {
-            rule.Name, rule.Metric, rule.Operator, rule.Threshold,
-            rule.Severity, rule.CooldownSeconds, rule.DeviceTypeId
+            rule.Name,
+            rule.Metric,
+            rule.Operator,
+            rule.Threshold,
+            rule.Severity,
+            rule.CooldownSeconds,
+            rule.DeviceTypeId
         };
 
         rule.Name = name;
