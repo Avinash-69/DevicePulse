@@ -1,0 +1,87 @@
+# Brings up the whole DevicePulse stack: SQL Server, the API and the SPA behind nginx.
+#
+#   docker compose up --build
+#   open http://localhost:8080
+#
+# Secrets come from the environment, never from this file. Copy .env.example to .env and fill
+# it in; .env is git-ignored (Appendix D.2 of the master reference).
+
+name: devicepulse
+
+services:
+  sql:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: devicepulse-sql
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: ${SQL_PASSWORD:?set SQL_PASSWORD in .env}
+      MSSQL_PID: Developer
+    ports:
+      # Published so the EF Core tooling and a local SSMS can reach it. Bound to localhost only,
+      # so the development database is not exposed to the network.
+      - "127.0.0.1:1433:1433"
+    volumes:
+      - sql-data:/var/opt/mssql
+    healthcheck:
+      # The API waits on this. Without it, the API starts first, finds no database, and its
+      # migration step fails the container.
+      test:
+        [
+          "CMD-SHELL",
+          "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"$$MSSQL_SA_PASSWORD\" -C -Q 'SELECT 1' || exit 1",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+    restart: unless-stopped
+
+  api:
+    build:
+      context: ./backend
+      dockerfile: src/DevicePulse.Api/Dockerfile
+    container_name: devicepulse-api
+    depends_on:
+      sql:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__DevicePulseDb: "Server=sql,1433;Database=DevicePulseDb;User Id=sa;Password=${SQL_PASSWORD};TrustServerCertificate=True;MultipleActiveResultSets=True"
+
+      Jwt__Issuer: DevicePulse
+      Jwt__Audience: DevicePulse.Client
+      Jwt__SigningKey: ${JWT_SIGNING_KEY:?set JWT_SIGNING_KEY in .env}
+      Jwt__AccessTokenMinutes: "15"
+      Jwt__RefreshTokenDays: "7"
+
+      # Single API instance here, so migrating at startup is safe and keeps setup to one
+      # command. Scale this service out and migrations must move to a deploy step instead —
+      # several instances racing to migrate the same database is a real failure mode.
+      Database__ApplyMigrationsOnStartup: "true"
+      Database__SeedOnStartup: "true"
+
+      Seed__SuperAdminEmail: ${SUPERADMIN_EMAIL:-superadmin@devicepulse.local}
+      Seed__SuperAdminName: Super Admin
+      Seed__SuperAdminPassword: ${SUPERADMIN_PASSWORD:?set SUPERADMIN_PASSWORD in .env}
+      Seed__SeedSampleData: "false"
+
+      # The SPA is served from the same origin through nginx, so no cross-origin access is
+      # needed and the allow-list stays empty — which fails closed.
+      Security__AllowedCorsOrigins__0: ""
+    expose:
+      - "8080"
+    restart: unless-stopped
+
+  web:
+    build:
+      context: ./frontend/devicepulse-web
+      dockerfile: Dockerfile
+    container_name: devicepulse-web
+    depends_on:
+      - api
+    ports:
+      - "8080:80"
+    restart: unless-stopped
+
+volumes:
+  sql-data:
