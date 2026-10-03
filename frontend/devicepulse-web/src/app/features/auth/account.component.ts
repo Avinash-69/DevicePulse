@@ -120,10 +120,8 @@ import { PageHeaderComponent } from '../../shared/components/ui.components';
       .fact-label {
         display: block;
         margin-bottom: var(--sp-1);
-        font-size: 0.7rem;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.04em;
+        font-size: var(--fs-meta);
+        font-weight: var(--fw-medium);
         color: var(--text-2);
       }
 

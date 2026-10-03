@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, computed, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 
 import { ApiService } from '../../core/services/api.service';
@@ -58,7 +58,7 @@ import { AbsoluteTimePipe, DurationPipe } from '../../shared/utils/relative-time
       </dp-page-header>
 
       @if (loading()) {
-        <div class="skeleton" style="height: 260px; border-radius: 12px"></div>
+        <div class="skeleton" style="height: 260px"></div>
       } @else if (rules().length === 0) {
         <div class="panel">
           <dp-empty title="No alert rules" message="Without a rule, no alerts will ever be raised.">
@@ -68,66 +68,68 @@ import { AbsoluteTimePipe, DurationPipe } from '../../shared/utils/relative-time
           </dp-empty>
         </div>
       } @else {
-        <div class="rules">
-          @for (rule of rules(); track rule.alertRuleId) {
-            <article class="panel rule" [class.disabled]="!rule.isEnabled">
-              <div class="panel-body">
-                <div class="row row-wrap">
-                  <dp-severity [severity]="rule.severity" />
-                  <h3>{{ rule.name }}</h3>
-                  <span class="spacer"></span>
-
-                  <dp-if-permitted [permission]="perm.alertRuleManage">
-                    <label class="switch" [title]="rule.isEnabled ? 'Disable this rule' : 'Enable this rule'">
-                      <input
-                        type="checkbox"
-                        [checked]="rule.isEnabled"
-                        [disabled]="busyId() === rule.alertRuleId"
-                        (change)="toggle(rule)"
-                      />
-                      <span class="switch-track"></span>
-                    </label>
-                  </dp-if-permitted>
-                </div>
-
-                <p class="condition mono">{{ rule.conditionSummary }}</p>
-
-                @if (rule.description) {
-                  <p class="text-2 small">{{ rule.description }}</p>
-                }
-
-                <dl class="meta">
-                  <div>
-                    <dt>Applies to</dt>
-                    <dd>{{ rule.deviceTypeName ?? 'all device types' }}</dd>
-                  </div>
-                  <div>
-                    <dt>Cooldown</dt>
-                    <dd>{{ rule.cooldownSeconds | duration }}</dd>
-                  </div>
-                  <div>
-                    <dt>Times triggered</dt>
-                    <dd class="mono">{{ rule.triggeredCount }}</dd>
-                  </div>
-                  <div>
-                    <dt>Last changed</dt>
-                    <dd>{{ (rule.updatedAt ?? rule.createdAt) | absoluteTime }}</dd>
-                  </div>
-                </dl>
-              </div>
-
-              <dp-if-permitted [permission]="perm.alertRuleManage">
-                <div class="panel-foot row">
-                  @if (!rule.isEnabled) {
-                    <span class="badge badge-neutral">disabled</span>
+        <!-- A table, not a grid of cards: rules are compared against each other (which fires
+             first, which is noisier), and comparison needs aligned columns. -->
+        <div class="panel">
+          <div class="table-wrap">
+            <table class="data">
+              <thead>
+                <tr>
+                  <th>Rule</th>
+                  <th>Condition</th>
+                  <th>Severity</th>
+                  <th class="col-optional">Applies to</th>
+                  <th class="col-optional">Cooldown</th>
+                  <th class="right col-optional">Triggered</th>
+                  <th class="col-optional">Last changed</th>
+                  <th>Enabled</th>
+                  @if (canManage()) {
+                    <th class="actions"><span class="sr-only">Actions</span></th>
                   }
-                  <span class="spacer"></span>
-                  <button type="button" class="btn btn-sm" (click)="openEdit(rule)">Edit</button>
-                  <button type="button" class="btn btn-sm btn-ghost" (click)="remove(rule)">Delete</button>
-                </div>
-              </dp-if-permitted>
-            </article>
-          }
+                </tr>
+              </thead>
+              <tbody>
+                @for (rule of rules(); track rule.alertRuleId) {
+                  <tr [class.disabled]="!rule.isEnabled">
+                    <td class="primary">
+                      {{ rule.name }}
+                      @if (rule.description) {
+                        <div class="text-2 small description">{{ rule.description }}</div>
+                      }
+                    </td>
+                    <td><code class="condition">{{ rule.conditionSummary }}</code></td>
+                    <td><dp-severity [severity]="rule.severity" /></td>
+                    <td class="text-2 col-optional">{{ rule.deviceTypeName ?? 'All types' }}</td>
+                    <td class="text-2 nowrap col-optional">{{ rule.cooldownSeconds | duration }}</td>
+                    <td class="right num col-optional">{{ rule.triggeredCount }}</td>
+                    <td class="text-2 small nowrap col-optional">{{ (rule.updatedAt ?? rule.createdAt) | absoluteTime }}</td>
+                    <td>
+                      @if (canManage()) {
+                        <label class="switch" [title]="rule.isEnabled ? 'Disable this rule' : 'Enable this rule'">
+                          <input
+                            type="checkbox"
+                            [checked]="rule.isEnabled"
+                            [disabled]="busyId() === rule.alertRuleId"
+                            [attr.aria-label]="(rule.isEnabled ? 'Disable ' : 'Enable ') + rule.name"
+                            (change)="toggle(rule)"
+                          />
+                          <span class="switch-track"></span>
+                        </label>
+                      } @else {
+                        <span class="text-2">{{ rule.isEnabled ? 'Yes' : 'No' }}</span>
+                      }
+                    </td>
+                    @if (canManage()) {
+                      <td class="actions">
+                        <button type="button" class="btn btn-row" (click)="openEdit(rule)">Edit</button>
+                        <button type="button" class="btn btn-row" (click)="remove(rule)">Delete</button>
+                      </td>
+                    }
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
         </div>
       }
     </div>
@@ -254,49 +256,17 @@ import { AbsoluteTimePipe, DurationPipe } from '../../shared/utils/relative-time
   changeDetection: ChangeDetectionStrategy.Eager,
   styles: [
     `
-      .rules {
-        display: grid;
-        gap: var(--sp-4);
-        grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
-      }
+      tr.disabled td { color: var(--text-3); }
 
-      .rule {
-        display: flex;
-        flex-direction: column;
-      }
-
-      .rule .panel-body { flex: 1 1 auto; }
-
-      .rule.disabled { opacity: 0.68; }
-
-      .rule h3 { font-size: 0.95rem; }
+      .description { max-width: 46ch; font-weight: var(--fw-normal); }
 
       .condition {
-        margin: var(--sp-2) 0 var(--sp-2);
-        padding: var(--sp-2) var(--sp-2);
-        font-size: 0.82rem;
-        background: var(--panel-3);
-        border-radius: var(--r-md);
-      }
-
-      .meta {
-        display: grid;
-        gap: var(--sp-2) var(--sp-4);
-        grid-template-columns: 1fr 1fr;
-        margin: var(--sp-3) 0 0;
-      }
-
-      .meta dt {
-        font-size: 0.68rem;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.04em;
-        color: var(--text-3);
-      }
-
-      .meta dd {
-        margin: 2px 0 0;
-        font-size: 0.82rem;
+        padding: 1px var(--sp-1);
+        font-size: var(--fs-sm);
+        white-space: nowrap;
+        background: var(--panel-2);
+        border: 1px solid var(--line);
+        border-radius: var(--r-xs);
       }
 
       .condition-builder {
@@ -352,6 +322,8 @@ export class AlertRulesComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
 
   readonly perm = Permissions;
+
+  readonly canManage = computed(() => this.auth.has(Permissions.alertRuleManage));
 
   readonly rules = signal<AlertRule[]>([]);
   readonly vocabulary = signal<AlertRuleVocabulary | null>(null);

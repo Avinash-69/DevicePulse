@@ -23,6 +23,10 @@
     <PackageReference Include="xunit.v3" Version="4.0.1" />
     <PackageReference Include="FluentAssertions" Version="6.12.2" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.12" />
+    <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="10.0.12" />
+    <!-- For the live-change interceptor's unit tests only. What they check is which tracked
+         changes become events, which involves no SQL; the integration suite stays on SQL Server. -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="10.0.12" />
   </ItemGroup>
 
   <ItemGroup>

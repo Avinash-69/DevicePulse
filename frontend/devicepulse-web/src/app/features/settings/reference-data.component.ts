@@ -82,7 +82,7 @@ type Kind = 'deviceType' | 'location';
                     <tr [class.inactive]="!type.isActive">
                       <td>{{ type.name }}</td>
                       <td class="text-2 small">{{ type.description ?? '—' }}</td>
-                      <td class="right mono">{{ type.deviceCount }}</td>
+                      <td class="right num">{{ type.deviceCount }}</td>
                       <td>
                         <span class="badge" [class]="type.isActive ? 'badge-ok' : 'badge-neutral'">
                           {{ type.isActive ? 'active' : 'inactive' }}
@@ -139,7 +139,7 @@ type Kind = 'deviceType' | 'location';
                     <tr [class.inactive]="!location.isActive">
                       <td>{{ location.name }}</td>
                       <td class="text-2 small">{{ location.description ?? '—' }}</td>
-                      <td class="right mono">{{ location.deviceCount }}</td>
+                      <td class="right num">{{ location.deviceCount }}</td>
                       <td>
                         <span class="badge" [class]="location.isActive ? 'badge-ok' : 'badge-neutral'">
                           {{ location.isActive ? 'active' : 'inactive' }}

@@ -101,7 +101,7 @@ import { AbsoluteTimePipe, RelativeTimePipe } from '../../shared/utils/relative-
                         <td>
                           {{ user.name }}
                           @if (user.userId === currentUserId()) {
-                            <span class="badge badge-accent">you</span>
+                            <span class="text-3 small">(you)</span>
                           }
                         </td>
                         <td class="text-2">{{ user.email }}</td>
@@ -114,16 +114,16 @@ import { AbsoluteTimePipe, RelativeTimePipe } from '../../shared/utils/relative-
                         </td>
                         <td>
                           @if (!user.isActive) {
-                            <span class="badge badge-danger">deactivated</span>
+                            <span class="stat-text stat-quiet"><span class="dot dot-hollow"></span>Deactivated</span>
                           } @else if (user.isLockedOut) {
                             <span
-                              class="badge badge-warn"
+                              class="stat-text stat-warn"
                               [title]="'Locked until ' + (user.lockedOutUntil | absoluteTime: true)"
                             >
-                              locked out
+                              <span class="dot"></span>Locked out
                             </span>
                           } @else {
-                            <span class="badge badge-ok">active</span>
+                            <span class="stat-text stat-calm stat-ok"><span class="dot"></span>Active</span>
                           }
                         </td>
                         <td class="text-2 small nowrap">

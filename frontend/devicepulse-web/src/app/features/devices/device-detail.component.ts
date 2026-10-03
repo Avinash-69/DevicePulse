@@ -1,11 +1,24 @@
-import { Component, OnInit, computed, inject, input, numberAttribute, signal, ChangeDetectionStrategy } from '@angular/core';
+import {
+  Component,
+  DestroyRef,
+  OnInit,
+  computed,
+  inject,
+  input,
+  numberAttribute,
+  signal,
+  ChangeDetectionStrategy,
+} from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { auditTime, filter, merge } from 'rxjs';
 
 import { ApiService } from '../../core/services/api.service';
 import { AuthService } from '../../core/auth/auth.service';
 import { Permissions } from '../../core/auth/permissions';
 import { NotificationService } from '../../core/services/notification.service';
+import { RealtimeService } from '../../core/services/realtime.service';
 import { fieldErrorsFrom } from '../../core/interceptors/error.interceptor';
 import {
   Alert,
@@ -122,7 +135,7 @@ import { AbsoluteTimePipe, RelativeTimePipe } from '../../shared/utils/relative-
             </div>
             <div class="fact">
               <span class="fact-label">Latest temperature</span>
-              <span class="mono">
+              <span class="num fact-value">
                 {{ latest() ? latest()!.temperature + ' °C' : '—' }}
               </span>
             </div>
@@ -132,13 +145,13 @@ import { AbsoluteTimePipe, RelativeTimePipe } from '../../shared/utils/relative-
             </div>
             <div class="fact">
               <span class="fact-label">Latest signal</span>
-              <span class="mono">
+              <span class="num fact-value">
                 {{ latest() ? latest()!.signalStrength + ' dBm' : '—' }}
               </span>
             </div>
             <div class="fact">
               <span class="fact-label">Registered</span>
-              <span class="small">{{ d.createdAt | absoluteTime }}</span>
+              <span>{{ d.createdAt | absoluteTime }}</span>
             </div>
           </section>
 
@@ -195,9 +208,9 @@ import { AbsoluteTimePipe, RelativeTimePipe } from '../../shared/utils/relative-
                           <td class="small nowrap" [title]="reading.recordedAt | absoluteTime: true">
                             {{ reading.recordedAt | relativeTime }}
                           </td>
-                          <td class="right mono">{{ reading.temperature }}</td>
+                          <td class="right num">{{ reading.temperature }}</td>
                           <td><dp-battery [level]="reading.battery" /></td>
-                          <td class="right mono">{{ reading.signalStrength }}</td>
+                          <td class="right num">{{ reading.signalStrength }}</td>
                         </tr>
                       }
                     </tbody>
@@ -237,7 +250,7 @@ import { AbsoluteTimePipe, RelativeTimePipe } from '../../shared/utils/relative-
           </div>
         </div>
       } @else if (loading()) {
-        <div class="skeleton" style="height: 240px; border-radius: 12px"></div>
+        <div class="skeleton" style="height: 240px"></div>
       } @else {
         <dp-empty title="Device not found" message="It may have been removed.">
           <a routerLink="/devices" class="btn btn-primary">Back to devices</a>
@@ -363,12 +376,10 @@ import { AbsoluteTimePipe, RelativeTimePipe } from '../../shared/utils/relative-
         padding: var(--sp-3) var(--sp-4);
         margin-bottom: var(--sp-4);
         font-size: 0.85rem;
-        color: var(--warn);
+        color: var(--text);
         background: var(--warn-wash);
-        border-radius: var(--r-md);
+        border-left: 3px solid var(--warn);
       }
-
-      .facts { grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); }
 
       /*
        * The device's current state, as one strip rather than eight boxes. Hairline dividers
@@ -378,29 +389,34 @@ import { AbsoluteTimePipe, RelativeTimePipe } from '../../shared/utils/relative-
        */
       .facts {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 1px;
+        overflow: hidden;
+        background: var(--line);
       }
 
+      /* Hairlines come from the 1px gap showing the panel's line colour through, so every cell
+         is ruled on exactly the sides it shares with a neighbour, whatever the column count. */
       .fact {
         display: grid;
         gap: var(--sp-1);
         align-content: start;
         justify-items: start;
         padding: var(--sp-3) var(--sp-4);
-        border-right: 1px solid var(--line);
-        border-bottom: 1px solid var(--line);
+        background: var(--panel);
         min-width: 0;
       }
 
-      .fact-label {
-        font-size: var(--fs-micro);
-        font-weight: var(--fw-semibold);
-        text-transform: uppercase;
-        letter-spacing: var(--tr-wide);
-        color: var(--text-3);
+      .fact-value { font-size: var(--fs-lg); }
+
+      @media (max-width: 900px) {
+        .facts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       }
 
-      @media (max-width: 1200px) {
+      .fact-label {
+        font-size: var(--fs-meta);
+        font-weight: var(--fw-medium);
+        color: var(--text-2);
       }
 
       .scroll { max-height: 420px; overflow-y: auto; }
@@ -444,6 +460,8 @@ export class DeviceDetailComponent implements OnInit {
   private readonly notifications = inject(NotificationService);
   private readonly router = inject(Router);
   private readonly fb = inject(FormBuilder);
+  private readonly live = inject(RealtimeService);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly perm = Permissions;
 
@@ -487,6 +505,20 @@ export class DeviceDetailComponent implements OnInit {
     this.loadTelemetry();
     this.loadAlerts();
     this.loadReferenceData();
+    this.followLiveChanges();
+  }
+
+  /** Re-reads the device and its alerts when a push concerns this device, or after a reconnect. */
+  private followLiveChanges(): void {
+    const forThisDevice = <T extends { deviceId: number }>(event: T) => event.deviceId === this.id();
+
+    merge(this.live.deviceStatusChanged$.pipe(filter(forThisDevice)), this.live.resynced$)
+      .pipe(auditTime(1000), takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.loadDevice());
+
+    merge(this.live.alertChanged$.pipe(filter(forThisDevice)), this.live.resynced$)
+      .pipe(auditTime(1000), takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.loadAlerts());
   }
 
   private loadDevice(): void {
